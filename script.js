@@ -42,7 +42,7 @@ let nextPiece;
 let score = 0;
 let level = 1;
 let gameOver = false;
-let dropStart = Date.now();
+let dropStart = 0; // Initialize later in gameLoop
 let dropInterval = 1000; // Milliseconds per drop initially
 
 // --- Board Functions ---
@@ -239,10 +239,15 @@ function resetGame() {
     currentPiece = getRandomPiece();
     nextPiece = getRandomPiece();
     drawNextBoard();
-    dropStart = Date.now();
+    dropStart = 0; // Let gameLoop initialize based on the first frame timestamp
 }
 
-function gameLoop(now = 0) {
+function gameLoop(now = 0) { // 'now' is performance.now()
+    // Initialize dropStart on the first frame or after reset
+    if (!dropStart) {
+        dropStart = now;
+    }
+
     if (gameOver) {
         context.fillStyle = 'rgba(0, 0, 0, 0.75)';
         context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
@@ -278,14 +283,18 @@ function gameLoop(now = 0) {
             // Check if the new piece collides immediately (game over condition)
             if (currentPiece.collides(0, 0, currentPiece.shape)) {
                 gameOver = true;
-            }
+            } // <-- Added missing closing brace here
         }
-        dropStart = now; // Reset drop timer
+        // Reset drop timer regardless of success/fail, using the timestamp from the current frame
+        dropStart = now;
     }
 
     // Draw everything
     drawBoard();
-    currentPiece.draw();
+    // Ensure currentPiece exists before drawing (especially during reset/game over transitions)
+    if (currentPiece) {
+       currentPiece.draw();
+    }
 
     requestAnimationFrame(gameLoop);
 }
@@ -293,71 +302,72 @@ function gameLoop(now = 0) {
 // --- Controls ---
 
 document.addEventListener('keydown', (event) => {
+    // Ensure currentPiece exists before handling input
+    if (!currentPiece && event.key !== 'Enter') return;
+
     if (gameOver) {
         if (event.key === 'Enter') {
             resetGame();
+            // Request the first frame, which will initialize dropStart
             requestAnimationFrame(gameLoop);
         }
         return;
     }
 
+    let moved = false; // Flag to check if redraw is needed
+
     switch (event.key) {
         case 'ArrowLeft':
-        case 'a': // Add WASD support
-            currentPiece.move(-1, 0);
+        case 'a':
+            moved = currentPiece.move(-1, 0);
             break;
         case 'ArrowRight':
         case 'd':
-            currentPiece.move(1, 0);
+            moved = currentPiece.move(1, 0);
             break;
         case 'ArrowDown':
         case 's':
-            // Move down faster
-            if (currentPiece.move(0, 1)) {
-                 // Reset drop timer slightly to avoid double drop if key held
-                 dropStart = Date.now();
-                 // Optional: Add score for manual drop
+            // Move down one step
+            moved = currentPiece.move(0, 1);
+            if (moved) {
+                 // Reset drop timer to make the *next* automatic drop happen sooner after manual drop
+                 // Use performance.now() for consistency with gameLoop's 'now'
+                 dropStart = performance.now();
+                 // Optional score for soft drop
                  // score += 1;
                  // scoreElement.textContent = score;
             } else {
-                // If it can't move down, freeze immediately (optional, feels more responsive)
-                freezePiece();
-                clearLines();
-                 if (gameOver) break; // Check game over after freeze
-                currentPiece = nextPiece;
-                nextPiece = getRandomPiece();
-                drawNextBoard();
-                if (currentPiece.collides(0, 0, currentPiece.shape)) gameOver = true;
-                dropStart = Date.now(); // Reset timer for new piece
+                 // If it can't move down manually, let the game loop handle freezing on the next tick
+                 // This prevents potential double-freeze issues
             }
             break;
         case 'ArrowUp':
         case 'w':
             currentPiece.rotate();
+            moved = true; // Rotation always requires redraw
             break;
-        case ' ': // Space for hard drop (optional)
+        case ' ': // Space for hard drop
             while (currentPiece.move(0, 1)) {
-                // Keep moving down until collision
-                // Optional: Add score for hard drop
+                // Keep moving down
+                // Optional score for hard drop steps
                 // score += 2;
             }
-            // Freeze immediately after hard drop
-            freezePiece();
-            clearLines();
-            if (gameOver) break; // Check game over after freeze
-            currentPiece = nextPiece;
-            nextPiece = getRandomPiece();
-            drawNextBoard();
-            if (currentPiece.collides(0, 0, currentPiece.shape)) gameOver = true;
-            dropStart = Date.now(); // Reset timer for new piece
-            // scoreElement.textContent = score; // Update score if points added
+            // Let the game loop handle freezing on the next tick after hard drop
+            // Force the next game loop tick to check for freeze immediately
+            // Use performance.now() for consistency
+            dropStart = performance.now() - dropInterval - 1; // Set dropStart so deltaTime > dropInterval is true on next frame
+            moved = true; // Hard drop requires redraw
+            // scoreElement.textContent = score;
             break;
     }
 
-    // Redraw immediately after input for responsiveness
-    drawBoard();
-    currentPiece.draw();
+    // Redraw immediately only if a move or rotation happened
+    if (moved) {
+        drawBoard();
+        currentPiece.draw();
+    }
 });
+
 
 // --- Start Game ---
 resetGame(); // Initialize game state
