@@ -45,11 +45,6 @@ let gameOver = false;
 let dropStart = 0; // Initialize later in gameLoop
 let dropInterval = 800; // Milliseconds per drop initially (Increased speed)
 
-// --- Lock Delay Variables ---
-const lockDelayDuration = 500; // ms before piece locks after landing
-let lockStartTime = 0;
-let pieceIsLanded = false;
-
 // --- Music Variables ---
 let audio = null; // Will be created when music starts
 let musicTracks = [];
@@ -136,39 +131,15 @@ class Piece {
     }
 
     move(dx, dy) {
-    if (!this.collides(dx, dy, this.shape)) {
-        this.x += dx;
-        this.y += dy;
-        // If piece moved down, it's definitely not landed for lock delay purposes
-        if (dy > 0) {
-            pieceIsLanded = false;
-            lockStartTime = 0;
+        // Check collision *before* changing position
+        if (!this.collides(dx, dy, this.shape)) {
+            this.x += dx;
+            this.y += dy;
+            return true; // Move successful
         }
-        // If piece moved horizontally or rotated *while* it was considered landed,
-        // reset the landed state and timer if it's no longer touching down.
-        else if (pieceIsLanded && (dx !== 0)) {
-             if (!this.collides(0, 1, this.shape)) { // Check if there's space below now
-                 pieceIsLanded = false;
-                 lockStartTime = 0;
-             } else {
-                 // If still touching, reset the lock timer
-                 lockStartTime = performance.now();
-             }
-        }
-        return true;
+        return false; // Move failed
     }
-    // If move failed due to downward collision, mark as landed
-    else if (dy > 0 && this.collides(dx, dy, this.shape)) {
-         // Only set landed state if the collision is directly below
-         if (this.isDirectlyOnGround(shape)) {
-            if (!pieceIsLanded) { // Start timer only on first landing contact
-                pieceIsLanded = true;
-                lockStartTime = performance.now();
-            }
-         }
-    }
-    return false;
-    }
+
 
     rotate() {
         // Simple rotation logic (transpose + reverse rows)
@@ -198,17 +169,6 @@ class Piece {
         if (canRotate) {
             this.shape = newShape;
             this.x += kickOffset; // Apply wall kick
-
-            // Check if rotation lifted the piece off the ground
-            if (pieceIsLanded) {
-                if (!this.collides(0, 1, this.shape)) {
-                    pieceIsLanded = false;
-                    lockStartTime = 0;
-                } else {
-                    // If still touching, reset the lock timer
-                    lockStartTime = performance.now();
-                }
-            }
         }
         // If rotation failed, do nothing
     }
@@ -235,23 +195,8 @@ class Piece {
         }
         return false;
     }
-
-    // Helper to check if the piece is directly on top of the ground or another piece
-    isDirectlyOnGround(shape) {
-         for (let y = 0; y < shape.length; y++) {
-            for (let x = 0; x < shape[0].length; x++) {
-                if (shape[y][x] > 0) {
-                    let checkY = this.y + y + 1; // Check cell directly below
-                    let checkX = this.x + x;
-                    if (checkY >= ROWS || (board[checkY] && board[checkY][checkX] !== 0)) {
-                        return true; // Touching ground or another piece
-                    }
-                }
-            }
-        }
-        return false;
-    }
 }
+
 
 function getRandomPiece() {
     const type = Math.floor(Math.random() * (SHAPES.length - 1)) + 1; // 1 to 7
@@ -325,9 +270,8 @@ function resetGame() {
     nextPiece = getRandomPiece();
     drawNextBoard();
     dropStart = 0; // Let gameLoop initialize based on the first frame timestamp
-    pieceIsLanded = false;
-    lockStartTime = 0;
 }
+
 
 function gameLoop(now = 0) { // 'now' is performance.now()
     // Initialize dropStart on the first frame or after reset
@@ -357,55 +301,36 @@ function gameLoop(now = 0) { // 'now' is performance.now()
 
     const deltaTime = now - dropStart;
     let timeToDrop = deltaTime > dropInterval;
-    let timeToLock = pieceIsLanded && (now - lockStartTime > lockDelayDuration);
 
-    // --- Piece Locking Logic ---
-    if (timeToLock) {
-        freezePiece();
-        clearLines(); // Check for cleared lines after freezing
-
-        // Check for game over immediately after freezing
-        if (gameOver) {
-            requestAnimationFrame(gameLoop); // Draw game over screen
-            return;
-        }
-
-        // Get the next piece
-        currentPiece = nextPiece;
-        nextPiece = getRandomPiece();
-        drawNextBoard();
-        pieceIsLanded = false; // Reset landed state for new piece
-        lockStartTime = 0;
-
-        // Check if the new piece collides immediately (game over condition)
-        if (currentPiece.collides(0, 0, currentPiece.shape)) {
-            gameOver = true;
-        }
-        dropStart = now; // Reset drop timer for new piece
-    }
-    // --- Automatic Drop Logic ---
-    // Only drop automatically if the piece is not currently in lock delay phase
-    else if (timeToDrop && !pieceIsLanded) {
-        // Attempt to move the piece down
+    if (timeToDrop) {
+        // Attempt to move down
         if (!currentPiece.move(0, 1)) {
-             // move failed, piece has landed (move function handles setting pieceIsLanded and lockStartTime)
-             // Do nothing here, let the lock delay timer run
-        }
-         dropStart = now; // Reset drop timer regardless of success/fail
-    }
-    // --- Handle case where piece lands but lock timer hasn't expired ---
-    else if (pieceIsLanded && !timeToLock) {
-        // Piece is landed, but timer is still running. Do nothing, wait for lock or player input.
-        // We don't reset dropStart here, allowing the lock timer to proceed independently.
-    }
-    // --- Reset drop timer if piece is falling normally ---
-    else if (timeToDrop && !pieceIsLanded) {
-         dropStart = now; // Reset drop timer if piece is falling
-    }
+            // Move failed - piece has landed or hit something. Freeze it immediately.
+            freezePiece();
+            clearLines(); // Check for cleared lines after freezing
 
+            // Check for game over immediately after freezing
+            if (gameOver) {
+                requestAnimationFrame(gameLoop); // Draw game over screen
+                return;
+            }
+
+            // Get the next piece
+            currentPiece = nextPiece;
+            nextPiece = getRandomPiece();
+            drawNextBoard();
+
+            // Check if the new piece collides immediately (game over condition)
+            if (currentPiece.collides(0, 0, currentPiece.shape)) {
+                gameOver = true;
+            }
+        }
+        // Reset drop timer regardless of success/fail
+        dropStart = now;
+    }
 
     // Draw everything
-    drawBoard();
+    drawBoard(); // Includes particles
     // Ensure currentPiece exists before drawing (especially during reset/game over transitions)
     if (currentPiece) {
        currentPiece.draw();
@@ -500,36 +425,41 @@ document.addEventListener('keydown', (event) => {
     switch (event.key) {
         case 'ArrowLeft':
         case 'a':
-            moved = currentPiece.move(-1, 0); // move() handles lock timer reset if needed
+            // Allow move only if it doesn't collide with the ground/locked pieces
+            if (!currentPiece.collides(-1, 0, currentPiece.shape)) {
+                 currentPiece.move(-1, 0);
+                 moved = true;
+            }
             break;
         case 'ArrowRight':
         case 'd':
-            moved = currentPiece.move(1, 0); // move() handles lock timer reset if needed
+             if (!currentPiece.collides(1, 0, currentPiece.shape)) {
+                 currentPiece.move(1, 0);
+                 moved = true;
+            }
             break;
         case 'ArrowDown':
         case 's':
-            // Soft drop: move down one step
-            if (!pieceIsLanded) { // Only allow soft drop if not in lock delay
-                 moved = currentPiece.move(0, 1);
-                 if (moved) {
-                     // Reset drop timer to make the *next* automatic drop happen sooner
-                     dropStart = performance.now();
-                     // Optional score for soft drop
-                     // score += 1;
-                     // scoreElement.textContent = score;
-                 }
-                 // If move(0, 1) fails here, the piece is now landed.
-                 // The move function will set pieceIsLanded and start the lock timer.
+            // Soft drop: move down one step if possible
+            if (currentPiece.move(0, 1)) {
+                // Reset drop timer to make the *next* automatic drop happen sooner
+                dropStart = performance.now();
+                moved = true;
+                // Optional score for soft drop
+                // score += 1;
+                // scoreElement.textContent = score;
             } else {
-                 // If already landed, pressing down confirms the lock immediately
-                 lockStartTime = performance.now() - lockDelayDuration - 1; // Force lock on next frame
-                 moved = false; // Don't redraw immediately, let gameLoop handle freeze
+                 // If move failed, let the main game loop handle freezing on the next frame
+                 // Force the next game loop tick to check for freeze immediately
+                 dropStart = performance.now() - dropInterval - 1;
+                 moved = false; // Don't redraw here, let game loop handle it
             }
             break;
         case 'ArrowUp':
         case 'w':
-            currentPiece.rotate(); // rotate() handles lock timer reset if needed
-            moved = true; // Rotation always requires redraw
+            // Attempt rotation (collides check is inside rotate method)
+            currentPiece.rotate();
+            moved = true; // Always redraw after rotation attempt
             break;
         case ' ': // Space for hard drop
             while (currentPiece.move(0, 1)) {
@@ -537,11 +467,10 @@ document.addEventListener('keydown', (event) => {
                 // Optional score for hard drop steps
                 // score += 2;
             }
-            // Let the game loop handle freezing on the next tick after hard drop
             // Force the next game loop tick to check for freeze immediately
-            // Use performance.now() for consistency
-            dropStart = performance.now() - dropInterval - 1; // Set dropStart so deltaTime > dropInterval is true on next frame
-            moved = true; // Hard drop requires redraw
+            dropStart = performance.now() - dropInterval - 1;
+            moved = false; // Don't redraw here, let game loop handle freeze and draw
+            // Optional score for hard drop
             // scoreElement.textContent = score;
             break;
     }
@@ -591,30 +520,44 @@ async function loadAndPlayMusic() {
             if (!audio) {
                 audio = new Audio();
                 audio.addEventListener('ended', playNextTrack); // Play next track when one finishes
-                // Handle potential autoplay restrictions - might need user interaction
-                audio.addEventListener('play', () => console.log(`Playing: ${musicTracks[currentTrackIndex]}`));
-                audio.addEventListener('error', (e) => console.error(`Error loading/playing ${audio.src}:`, e));
+                audio.addEventListener('error', (e) => {
+                    console.error(`Error loading/playing audio: ${audio.src}`, e);
+                    // Optionally skip to next track on error after a delay
+                    // setTimeout(playNextTrack, 1000);
+                });
             }
 
+            console.log(`Attempting to load track: /music/${musicTracks[currentTrackIndex]}`);
             audio.src = `/music/${musicTracks[currentTrackIndex]}`;
 
-            // Attempt to play. This might require user interaction first in some browsers.
-            // A common pattern is to start music after the first user action (e.g., key press).
-            // For simplicity here, we try to play immediately.
-            audio.play().catch(e => {
-                console.warn("Autoplay failed, likely requires user interaction first.", e);
-                // Add a listener to play on first interaction if needed
-                const playOnClick = () => {
-                    audio.play().catch(err => console.error("Error playing audio after interaction:", err));
-                    document.body.removeEventListener('click', playOnClick); // Remove listener after first play
-                    document.body.removeEventListener('keydown', playOnClick);
-                };
-                document.body.addEventListener('click', playOnClick, { once: true });
-                document.body.addEventListener('keydown', playOnClick, { once: true });
-            });
+            // Attempt to play. Handle potential promise rejection.
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // Autoplay started!
+                    console.log(`Playing: ${musicTracks[currentTrackIndex]}`);
+                }).catch(error => {
+                    // Autoplay was prevented.
+                    console.warn("Autoplay prevented. Waiting for user interaction.", error);
+                    // Add a one-time listener for the first interaction
+                    const startMusicOnInteraction = () => {
+                         console.log("User interaction detected, attempting to play music.");
+                         audio.play().then(_ => {
+                             console.log(`Playing: ${musicTracks[currentTrackIndex]} after interaction.`);
+                         }).catch(err => {
+                             console.error("Error playing audio even after interaction:", err);
+                         });
+                         // Remove listeners after first interaction
+                         document.removeEventListener('click', startMusicOnInteraction);
+                         document.removeEventListener('keydown', startMusicOnInteraction);
+                    };
+                    document.addEventListener('click', startMusicOnInteraction, { once: true });
+                    document.addEventListener('keydown', startMusicOnInteraction, { once: true });
+                });
+            }
 
         } else {
-            console.log("No music tracks found in /music directory.");
+            console.log("No music tracks found or returned from /api/music.");
         }
     } catch (error) {
         console.error("Failed to fetch or play music:", error);
