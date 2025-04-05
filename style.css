@@ -1,0 +1,52 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+#game-container {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    background-color: #ddd;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    position: absolute; /* Position heading relative to game-container */
+    top: 10px; /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+}
+
+
+#tetris-board {
+    border: 5px solid #333;
+    background-color: #fff;
+    margin-top: 60px; /* Add margin to push canvas down */
+}
+
+#info {
+    margin-left: 20px;
+    padding-top: 60px; /* Align info content with the top of the board */
+    width: 100px; /* Give info section a fixed width */
+}
+
+#info p {
+    margin: 10px 0;
+    font-size: 1.1em;
+}
+
+#next-piece {
+    border: 1px solid #ccc;
+    background-color: #fff;
+    margin-top: 5px;
+}
