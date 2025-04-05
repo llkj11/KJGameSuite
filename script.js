@@ -45,6 +45,12 @@ let gameOver = false;
 let dropStart = 0; // Initialize later in gameLoop
 let dropInterval = 1000; // Milliseconds per drop initially
 
+// --- Music Variables ---
+let audio = null; // Will be created when music starts
+let musicTracks = [];
+let currentTrackIndex = 0;
+let isMusicLoaded = false; // Flag to track if music list is fetched
+
 // --- Board Functions ---
 
 function createBoard(rows, cols) {
@@ -368,7 +374,75 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
+// --- Music Functions ---
+
+// Fisher-Yates (aka Knuth) Shuffle algorithm
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+}
+
+function playNextTrack() {
+    if (!audio || musicTracks.length === 0) return; // No audio element or no tracks
+
+    currentTrackIndex = (currentTrackIndex + 1) % musicTracks.length; // Loop back to start
+    audio.src = `/music/${musicTracks[currentTrackIndex]}`; // Path relative to server root
+    audio.play().catch(e => console.error("Error playing audio:", e)); // Autoplay might be blocked initially
+}
+
+async function loadAndPlayMusic() {
+    if (isMusicLoaded) return; // Don't load multiple times
+
+    try {
+        const response = await fetch('/api/music');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const files = await response.json();
+
+        if (files && files.length > 0) {
+            musicTracks = files;
+            shuffleArray(musicTracks); // Shuffle the tracks
+            isMusicLoaded = true;
+            currentTrackIndex = 0; // Start from the first shuffled track
+
+            // Create Audio element if it doesn't exist
+            if (!audio) {
+                audio = new Audio();
+                audio.addEventListener('ended', playNextTrack); // Play next track when one finishes
+                // Handle potential autoplay restrictions - might need user interaction
+                audio.addEventListener('play', () => console.log(`Playing: ${musicTracks[currentTrackIndex]}`));
+                audio.addEventListener('error', (e) => console.error(`Error loading/playing ${audio.src}:`, e));
+            }
+
+            audio.src = `/music/${musicTracks[currentTrackIndex]}`;
+
+            // Attempt to play. This might require user interaction first in some browsers.
+            // A common pattern is to start music after the first user action (e.g., key press).
+            // For simplicity here, we try to play immediately.
+            audio.play().catch(e => {
+                console.warn("Autoplay failed, likely requires user interaction first.", e);
+                // Add a listener to play on first interaction if needed
+                const playOnClick = () => {
+                    audio.play().catch(err => console.error("Error playing audio after interaction:", err));
+                    document.body.removeEventListener('click', playOnClick); // Remove listener after first play
+                    document.body.removeEventListener('keydown', playOnClick);
+                };
+                document.body.addEventListener('click', playOnClick, { once: true });
+                document.body.addEventListener('keydown', playOnClick, { once: true });
+            });
+
+        } else {
+            console.log("No music tracks found in /music directory.");
+        }
+    } catch (error) {
+        console.error("Failed to fetch or play music:", error);
+    }
+}
 
 // --- Start Game ---
 resetGame(); // Initialize game state
+loadAndPlayMusic(); // Load music list and start playing
 gameLoop(); // Start the main game loop
