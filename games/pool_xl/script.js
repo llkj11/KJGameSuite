@@ -156,25 +156,38 @@ poolTableCanvas.addEventListener('mousemove', (e) => {
 
 // --- Actions (Implementing shoot with Matter.js) ---
 function shoot() {
-    if (!cueBallBody || !cueStick.visible) return;
-    // Use the latest mouse position if available
-    let angle = cueStick.angle;
-    if (gamePhase === 'aiming' && latestMousePos) {
-        const dx = latestMousePos.x - cueBallBody.position.x;
-        const dy = latestMousePos.y - cueBallBody.position.y;
-        angle = Math.atan2(dy, dx);
+    console.log("Shoot function called!");
+    // Ensure cue ball body and latest mouse position exist
+    if (!cueBallBody || !latestMousePos || !cueStick.visible) {
+         console.error("Shoot called without cue ball, mouse position, or stick visible.");
+         return;
     }
-    const targetSpeed = cueStick.power * 0.2;
+
+    // Calculate angle directly from cue ball to mouse position at the time of shooting
+    const dx = latestMousePos.x - cueBallBody.position.x;
+    const dy = latestMousePos.y - cueBallBody.position.y;
+    const angle = Math.atan2(dy, dx); // Angle FROM cue ball TO mouse
+
+    const targetSpeed = cueStick.power * 0.25; // Keep reduced power
+    
+    // Calculate base vector TOWARDS mouse
+    const vectorX = Math.cos(angle) * targetSpeed;
+    const vectorY = Math.sin(angle) * targetSpeed;
+
+    // Apply the REVERSE vector (AWAY from mouse, in the direction the tip points)
     const velocityVector = {
-        x: Math.cos(angle) * targetSpeed,
-        y: Math.sin(angle) * targetSpeed
+        x: -vectorX,
+        y: -vectorY
     };
+
     // Debug log
-    console.log(`SHOOT: Power=${cueStick.power}, Angle=${angle}, Velocity=(${velocityVector.x}, ${velocityVector.y})`);
+    console.log(`SHOOT: Power=${cueStick.power}, Angle=${angle + Math.PI}, Velocity=(${velocityVector.x}, ${velocityVector.y})`); // Log opposite angle
+
     Matter.Sleeping.set(cueBallBody, false);
     Body.setStatic(cueBallBody, false);
     Matter.Body.setVelocity(cueBallBody, velocityVector);
-    cueStick.power = 0;
+
+    cueStick.power = 0; // Reset power after shooting
 }
 
 // --- Setup --- 
@@ -497,6 +510,7 @@ function gameLoop(timestamp) {
 
     // 2. Update Matter.js Engine (Only if simulating)
     if (simulationRunning) {
+         console.log("Engine updating...");
          const updateDt = Math.min(dt * 1000, 16.67 * 3); // Use capped delta for update
          //console.log(`Engine update dt (ms): ${updateDt}`); // Log update dt
          Engine.update(engine, updateDt); 
@@ -644,12 +658,15 @@ poolTableCanvas.addEventListener('mousedown', (e) => {
 
 poolTableCanvas.addEventListener('mouseup', (e) => {
     if (!cueBallBody || !cueStick.charging) return;
+    console.log("Mouse up event triggered! Attempting to shoot.");
     mouseDown = false;
     cueStick.charging = false;
     // Shoot with the current power
     shoot();
     gamePhase = 'simulating';
+    simulationRunning = true;
     cueStick.visible = false;
+    pocketedThisTurn = [];
 });
 
 function getMousePos(evt) {
