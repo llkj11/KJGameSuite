@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Enhanced - JS v2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <!-- Score/Info Overlay -->
+        <div id="game-info" class="hidden">
+            <p>Score: <span id="score">0</span></p>
+            <p>Stage: <span id="stage">1</span></p>
+        </div>
+
+        <!-- Main Menu (Show initially) -->
+        <div id="main-menu">
+            <h1>Snake Enhanced</h1>
+            <button id="start-button">Start Game</button>
+            <!-- Add other menu buttons later if needed (Difficulty, Color, etc.) -->
+            <button id="exit-suite-button">Exit to Suite</button> <!-- Example -->
+        </div>
+
+        <!-- Game Over Menu (Hidden) -->
+        <div id="game-over-menu" class="hidden">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <button id="restart-button">Play Again</button>
+            <button id="game-over-exit-button">Exit to Suite</button>
+            <!-- Add initials input later if needed -->
+        </div>
+
+        <!-- Pause Menu (Hidden) -->
+        <div id="pause-menu" class="hidden">
+            <h2>Paused</h2>
+            <button id="pause-resume-button">Resume</button>
+            <button id="pause-exit-button">Exit to Suite</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 

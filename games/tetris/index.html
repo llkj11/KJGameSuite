@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris - KJ Game Suite</title>
+    <link rel="stylesheet" href="style.css"> <!-- Relative path to Tetris CSS -->
+</head>
+<body>
+    <div id="game-container">
+        <!-- Left Panel -->
+        <div id="left-panel">
+            <h1>Tetris</h1>
+            <h3>Hold</h3>
+            <canvas id="hold-piece" width="80" height="80"></canvas>
+            <div id="stats">
+                <p>Lines: <span id="lines-cleared">0</span></p>
+            </div>
+            <div id="controls-info">
+                <h4>Controls:</h4>
+                <p>Arrows: Move</p>
+                <p>W/Up: Rotate</p>
+                <p>Space: Hard Drop</p>
+                <p>Esc: Pause</p>
+                <p>C: Hold</p>
+                <p>R: Reset</p>
+                <p>./,: Music</p>
+            </div>
+        </div>
+
+        <!-- Center Panel (Board) -->
+        <div id="center-panel">
+            <canvas id="tetris-board" width="300" height="600"></canvas>
+        </div>
+
+        <!-- Right Panel (Score, Level, Next) -->
+        <div id="right-panel">
+            <div id="info">
+                <p>Score: <span id="score">0</span></p>
+                <p>Level: <span id="level">1</span></p>
+                <p>Next:</p>
+                <canvas id="next-piece" width="80" height="80"></canvas>
+                <!-- Custom Image -->
+                <img id="custom-image" src="a4085bf7-bb29-4402-9fb2-2f7cdeb17aa1.png" alt="Custom Image">
+                <!-- Animated Graphic Placeholder -->
+                <div id="animated-graphic"></div>
+            </div>
+        </div>
+
+    </div>
+    <script src="script.js"></script> <!-- Relative path to Tetris JS -->
+
+    <!-- Pause Menu (Hidden by default) -->
+    <div id="pause-menu" class="hidden">
+        <h2>Paused</h2>
+        <button id="resume-button">Resume</button>
+        <button id="volume-button">Mute</button> <!-- Start with Mute/Unmute -->
+        <button id="exit-button">Exit to Menu</button>
+    </div>
+</body>
+</html> 

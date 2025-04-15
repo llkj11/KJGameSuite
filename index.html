@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tetris</title>
+    <title>KJ Game Suite</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
-        <h1>Tetris</h1>
-        <canvas id="tetris-board" width="300" height="600"></canvas> {/* Increased dimensions */}
-        <div id="info">
-            <p>Score: <span id="score">0</span></p>
-            <p>Level: <span id="level">1</span></p>
-            <p>Next:</p>
-            <canvas id="next-piece" width="80" height="80"></canvas>
-        </div>
+    <div class="suite-container">
+        <h1>KJ Game Suite</h1>
+        <nav class="game-menu">
+            <h2>Select a Game:</h2>
+            <ul>
+                <li><a href="games/tetris/index.html">Tetris</a></li>
+                <li><a href="games/snake_enhanced/index.html">Snake Enhanced</a></li>
+                <li><a href="games/pool_xl/index.html">Pool XL</a></li>
+                <li><a href="#" class="placeholder">Game 4 (Coming Soon!)</a></li>
+                <li><a href="#" class="placeholder">Game 5 (Coming Soon!)</a></li>
+            </ul>
+        </nav>
     </div>
-    <script src="script.js"></script>
 </body>
 </html>

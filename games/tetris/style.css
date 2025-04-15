@@ -1,0 +1,289 @@
+/* General Styles */
+body {
+    font-family: 'Press Start 2P', cursive; /* Using the same retro font */
+    background: linear-gradient(to bottom, #1a1a2e, #16213e); /* Dark blue gradient */
+    color: #e0f2f7; /* Light text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Import the font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+.suite-container {
+    background-color: rgba(0, 0, 0, 0.4); /* Slightly darker background */
+    padding: 40px;
+    border-radius: 15px;
+    border: 3px solid #0f3460;
+    box-shadow: 0 0 25px rgba(8, 241, 255, 0.6);
+    text-align: center;
+    max-width: 600px;
+}
+
+h1 {
+    color: #e94560; /* Vibrant red/pink */
+    text-shadow: 2px 2px #16213e; /* Dark shadow */
+    font-size: 2.5em;
+    margin-bottom: 30px;
+}
+
+.game-menu h2 {
+    color: #ffe138; /* Vibrant yellow */
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.game-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.game-menu li {
+    margin-bottom: 15px;
+}
+
+.game-menu a {
+    display: block;
+    padding: 15px 20px;
+    background-color: #0f3460; /* Dark blue button background */
+    color: #e0f2f7;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    border: 2px solid #53a8b6; /* Lighter blue border */
+    font-size: 1.1em;
+}
+
+.game-menu a:hover {
+    background-color: #1e4877; /* Slightly lighter blue on hover */
+    transform: scale(1.03);
+    color: #fff;
+}
+
+.game-menu a.placeholder {
+    background-color: #3a3a50; /* Greyed out background */
+    color: #a0a0b0; /* Greyed out text */
+    cursor: not-allowed;
+    border-color: #555;
+}
+
+.game-menu a.placeholder:hover {
+    background-color: #3a3a50;
+    transform: none; /* No scale effect for placeholders */
+}
+
+/* Tetris Game Specific Styles */
+body {
+    /* Styles specific to the Tetris game page if different from suite needed */
+    /* For now, inherit from suite or rely on defaults */
+    font-family: 'Press Start 2P', cursive;
+    background: linear-gradient(to bottom, #1a1a2e, #16213e); /* Consistent background */
+    color: #e0f2f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Import the font if not globally imported (it is in suite) */
+/* @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap'); */
+
+#game-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 30px;
+    border-radius: 15px;
+    border: 3px solid #0f3460;
+    box-shadow: 0 0 20px rgba(8, 241, 255, 0.5);
+    gap: 30px;
+}
+
+#left-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 150px;
+}
+
+#center-panel {
+    /* No specific styles needed */
+}
+
+#right-panel {
+    width: 150px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #e94560;
+    text-shadow: 2px 2px #16213e;
+    font-size: 2em;
+}
+
+#hold-piece, #next-piece {
+    border: 2px solid var(--accent-color);
+    background-color: var(--dark-blue);
+    margin-bottom: 10px; /* Spacing below previews */
+}
+
+#stats, #controls-info {
+    width: 100%;
+    margin-top: 10px;
+}
+
+#stats p, #controls-info p, #info p {
+    margin: 8px 0;
+    font-size: 0.8em;
+    line-height: 1.3;
+}
+
+#controls-info h4 {
+    margin-bottom: 5px;
+    color: #ffe138;
+    font-size: 0.9em;
+}
+
+#stats span, #info span {
+    color: #ffe138;
+    font-weight: bold;
+}
+
+#tetris-board {
+    border: 5px solid #53a8b6;
+    background-color: #0f1c2e;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#custom-image {
+    display: block;
+    max-width: 100px;
+    max-height: 100px;
+    margin: 15px auto;
+    border: 2px solid #53a8b6;
+    border-radius: 5px;
+}
+
+#animated-graphic {
+    width: 100px;
+    height: 50px;
+    background: linear-gradient(45deg, #0f3460, #1a1a2e, #53a8b6);
+    margin: 15px auto;
+    border-radius: 5px;
+    border: 1px solid #53a8b6;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 5px rgba(8, 241, 255, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(8, 241, 255, 0.7);
+        transform: scale(1.03);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(8, 241, 255, 0.3);
+        transform: scale(1);
+    }
+}
+
+/* Style for Game Over text (drawn on canvas) */
+.game-over-text {
+    font-family: 'Press Start 2P', cursive;
+    color: #e94560;
+    text-shadow: 2px 2px #16213e;
+}
+
+/* Pause Menu Styles */
+#pause-menu {
+    position: absolute; /* Overlay on top of the game */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(15, 28, 46, 0.95); /* Dark, almost opaque background */
+    padding: 30px 50px;
+    border-radius: 10px;
+    border: 3px solid #53a8b6;
+    box-shadow: 0 0 20px rgba(8, 241, 255, 0.7);
+    z-index: 100; /* Ensure it's above canvas */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Spacing between elements */
+}
+
+#pause-menu.hidden {
+    display: none;
+}
+
+#pause-menu h2 {
+    color: #ffe138; /* Yellow */
+    margin: 0 0 15px 0; /* Margin bottom */
+    font-size: 1.8em;
+    text-shadow: 2px 2px #16213e;
+}
+
+#pause-menu button {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1em;
+    padding: 12px 20px;
+    background-color: #0f3460;
+    color: #e0f2f7;
+    border: 2px solid #53a8b6;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+#pause-menu button:hover {
+    background-color: #1e4877;
+    transform: translateY(-2px);
+    color: #fff;
+}
+
+#pause-menu button:active {
+    transform: translateY(1px);
+}
+
+@keyframes glow {
+    0% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0ff, 0 0 20px #0ff; }
+    50% { text-shadow: 0 0 10px #fff, 0 0 15px #0ff, 0 0 20px #0ff, 0 0 25px #0ff; }
+    100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0ff, 0 0 20px #0ff; }
+}
+
+.laser-ready-indicator p {
+    color: #0ff; /* Bright cyan color */
+    animation: glow 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-red {
+    0% { border-color: var(--accent-color); box-shadow: 0 0 5px var(--accent-color); }
+    50% { border-color: #f00; box-shadow: 0 0 10px #f00, 0 0 15px #f00; }
+    100% { border-color: var(--accent-color); box-shadow: 0 0 5px var(--accent-color); }
+}
+
+.bomb-indicator {
+    animation: pulse-red 1s infinite ease-in-out;
+}

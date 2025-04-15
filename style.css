@@ -1,76 +1,79 @@
+/* General Styles */
 body {
+    font-family: 'Press Start 2P', cursive; /* Using the same retro font */
+    background: linear-gradient(to bottom, #1a1a2e, #16213e); /* Dark blue gradient */
+    color: #e0f2f7; /* Light text color */
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh; /* Use min-height to ensure it covers viewport */
-    background: linear-gradient(to bottom, #1a1a2e, #16213e); /* Dark blue gradient */
-    font-family: 'Press Start 2P', cursive; /* Retro pixel font (needs import) */
-    color: #e0f2f7; /* Light text color */
+    min-height: 100vh;
     margin: 0;
-    padding: 20px; /* Add padding to body */
-    box-sizing: border-box; /* Include padding in height calculation */
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 /* Import the font */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-#game-container {
-    display: flex;
-    align-items: flex-start;
-    background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent dark background */
-    padding: 30px; /* Increased padding */
-    border-radius: 15px; /* Slightly more rounded */
-    border: 3px solid #0f3460; /* Dark blue border */
-    box-shadow: 0 0 20px rgba(8, 241, 255, 0.5); /* Neon blue glow */
-    position: relative; /* Needed for absolute positioning of h1 */
+.suite-container {
+    background-color: rgba(0, 0, 0, 0.4); /* Slightly darker background */
+    padding: 40px;
+    border-radius: 15px;
+    border: 3px solid #0f3460;
+    box-shadow: 0 0 25px rgba(8, 241, 255, 0.6);
+    text-align: center;
+    max-width: 600px;
 }
 
 h1 {
-    text-align: center;
-    margin-bottom: 25px; /* Increased margin */
     color: #e94560; /* Vibrant red/pink */
-    text-shadow: 2px 2px #16213e; /* Dark shadow for depth */
-    font-size: 2em; /* Larger title */
-    /* Remove absolute positioning, let it flow naturally */
-    width: 100%; /* Take full width of container */
+    text-shadow: 2px 2px #16213e; /* Dark shadow */
+    font-size: 2.5em;
+    margin-bottom: 30px;
 }
 
-
-#tetris-board {
-    border: 5px solid #53a8b6; /* Lighter blue border */
-    background-color: #0f1c2e; /* Darker background for the board */
-    /* Remove margin-top, handled by game-container padding */
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5); /* Inner shadow */
-}
-
-#info {
-    margin-left: 30px; /* Increased margin */
-    /* Remove padding-top, handled by game-container padding */
-    width: 150px; /* Wider info section */
-    text-align: left;
-}
-
-#info p {
-    margin: 15px 0; /* Increased spacing */
-    font-size: 0.9em; /* Adjust font size if needed */
-    line-height: 1.4;
-}
-
-#info span { /* Style score and level numbers */
+.game-menu h2 {
     color: #ffe138; /* Vibrant yellow */
-    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 1.5em;
 }
 
-#next-piece {
-    border: 2px solid #53a8b6; /* Match board border style */
-    background-color: #0f1c2e; /* Match board background */
-    margin-top: 10px; /* Increased margin */
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5); /* Inner shadow */
+.game-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-/* Style for Game Over text (will be drawn on canvas, but good to have a class) */
-.game-over-text {
-    font-family: 'Press Start 2P', cursive;
-    color: #e94560;
-    text-shadow: 2px 2px #16213e;
+.game-menu li {
+    margin-bottom: 15px;
 }
+
+.game-menu a {
+    display: block;
+    padding: 15px 20px;
+    background-color: #0f3460; /* Dark blue button background */
+    color: #e0f2f7;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    border: 2px solid #53a8b6; /* Lighter blue border */
+    font-size: 1.1em;
+}
+
+.game-menu a:hover {
+    background-color: #1e4877; /* Slightly lighter blue on hover */
+    transform: scale(1.03);
+    color: #fff;
+}
+
+.game-menu a.placeholder {
+    background-color: #3a3a50; /* Greyed out background */
+    color: #a0a0b0; /* Greyed out text */
+    cursor: not-allowed;
+    border-color: #555;
+}
+
+.game-menu a.placeholder:hover {
+    background-color: #3a3a50;
+    transform: none; /* No scale effect for placeholders */
+} 

@@ -1,0 +1,150 @@
+/* Basic Reset & Body Styles */
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #111; /* Dark background */
+    font-family: 'Arial', sans-serif; /* Basic font */
+    color: white;
+    overflow: hidden; /* Prevent scrollbars */
+}
+
+#game-container {
+    position: relative; /* For overlay positioning */
+    border: 3px solid #444;
+    /* Remove fixed width/height */
+    /* width: 1200px; */
+    /* height: 800px; */
+    /* Use aspect ratio to maintain shape */
+    aspect-ratio: 1200 / 800;
+    /* Limit size based on viewport */
+    width: 95vw;
+    max-width: 1200px; /* Limit max size based on logical size */
+    max-height: 95vh;
+    margin: auto; /* Center horizontally */
+}
+
+canvas {
+    display: block; /* Prevent extra space */
+    width: 100%; /* Make canvas fill container width */
+    height: 100%; /* Make canvas fill container height */
+    object-fit: contain; /* Scale while maintaining aspect ratio */
+}
+
+/* Menu & Overlay Styles */
+#main-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* background-color: rgba(0, 0, 0, 0.85); */ /* Remove dark overlay */
+    background-image: url('menu_background.png'); /* Add background image */
+    background-size: cover; /* Cover the entire area */
+    background-position: center; /* Center the image */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#pause-menu,
+#game-over-menu,
+#highscore-display,
+#color-selection {
+    /* Keep the dark overlay for these other menus */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#game-info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 5;
+    color: #0f0; /* Greenish text */
+}
+
+#game-info p {
+    margin: 2px 0;
+}
+
+.hidden {
+    display: none !important; /* Force display:none to override ID styles */
+}
+
+/* Basic Button Styling */
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    margin: 10px 5px;
+    cursor: pointer;
+    background-color: #444;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+h1, h2 {
+    color: #0f0; /* Greenish for Snake */
+}
+
+/* Specific Menu Styling (can be refined) */
+#highscore-list {
+    list-style-position: inside;
+    padding: 0;
+}
+
+#highscore-list li {
+    margin-bottom: 5px;
+}
+
+#initials-entry input {
+    margin: 5px;
+    padding: 5px;
+    text-align: center;
+    width: 50px;
+    text-transform: uppercase;
+}
+
+#game-over-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+    padding: 20px;
+    box-sizing: border-box;
+} 
