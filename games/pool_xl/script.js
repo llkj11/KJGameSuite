@@ -457,8 +457,25 @@ function drawPowerBar() {
 }
 
 function drawGuideLine() {
-     // TODO: Reimplement if needed, potentially using raycasting
-     console.log("Placeholder: drawGuideLine might need raycasting");
+     // Draw a guide line from cue ball in the shooting direction
+     if (!cueBallBody || !cueStick.visible) return;
+ 
+     const start = cueBallBody.position;
+     // Angle is AWAY from mouse, matching shoot direction
+     const angle = cueStick.angle + Math.PI; 
+ 
+     ctx.save();
+     ctx.beginPath();
+     ctx.setLineDash([8, 8]); // Dashed line style
+     ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; // Semi-transparent white
+     ctx.lineWidth = 2;
+     ctx.moveTo(start.x, start.y);
+     // Extend line - adjust length as needed (e.g., table width)
+     ctx.lineTo(start.x + Math.cos(angle) * TABLE_WIDTH, start.y + Math.sin(angle) * TABLE_WIDTH);
+     ctx.stroke();
+     ctx.closePath();
+     ctx.setLineDash([]); // Reset line dash
+     ctx.restore();
 }
 
 // --- Game Loop (Implementing Pocketing and Settling) ---
@@ -598,7 +615,9 @@ function gameLoop(timestamp) {
              aimPoint.x = 0;
              aimPoint.y = 0;
             
-             gamePhase = 'aiming'; // Return control to player
+             // Return control to player and make stick visible
+             gamePhase = 'aiming'; 
+             cueStick.visible = true;
         }
     }
 
@@ -627,9 +646,10 @@ function gameLoop(timestamp) {
 function respawnCueBall() {
      console.log("Respawning cue ball...");
      // Ensure old body is fully removed if somehow still tracked
-     if (cueBallBody && World.get(world, cueBallBody.id)) {
-         World.remove(world, cueBallBody);
-     }
+     // REMOVED FAULTY CHECK: The pocketing logic should handle removal.
+     // if (cueBallBody && World.get(world, cueBallBody.id)) { 
+     //     World.remove(world, cueBallBody);
+     // }
 
      const cueBallX = TABLE_WIDTH / 4; // Head spot X
      const cueBallY = TABLE_HEIGHT / 2; // Head spot Y

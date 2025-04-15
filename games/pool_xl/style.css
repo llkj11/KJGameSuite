@@ -1,88 +1,81 @@
 body {
     font-family: sans-serif;
     display: flex;
-    justify-content: center;
+    flex-direction: column; /* Stack elements vertically */
     align-items: center;
+    justify-content: flex-start; /* Align to top */
     min-height: 100vh;
-    background-color: #f0f0f0;
     margin: 0;
-}
-
-.game-container {
-    text-align: center;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    position: relative; /* Needed for absolute positioning of indicator */
+    background-color: #333; /* Darker background */
+    color: #eee; /* Light text for contrast */
+    padding-top: 20px; /* Add some padding at the top */
 }
 
 h1 {
-    color: #333;
     margin-bottom: 20px;
 }
 
-#poolTable {
-    background-color: green; /* Classic pool table felt color */
-    border: 10px solid brown; /* Wooden frame */
-    display: block;
-    margin: 0 auto 20px auto; /* Center the table */
+.game-container {
+    display: flex; /* Arrange table and indicator side-by-side */
+    align-items: flex-start; /* Align items to the top */
+    gap: 20px; /* Space between table and indicator */
+    margin-bottom: 20px; /* Space below game area */
 }
 
-.indicator-window {
-    position: absolute;
-    top: 80px; /* Adjust as needed */
-    right: 30px; /* Adjust as needed */
-    width: 120px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 1px solid #ccc;
+canvas#poolTable {
+    border: 8px solid #8d5524; /* Keep the wood border */
+    display: block;
+    background-color: #1b5e20; /* Dark green table, fallback */
+    /* Gradients/shadows are handled in script.js */
+}
+
+.aim-indicator-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: #444; /* Slightly lighter than body background */
+    border-radius: 8px;
+    border: 1px solid #666;
+}
+
+canvas#indicatorCanvas {
+    border: 1px solid #888;
+    margin-bottom: 10px;
+}
+
+.aim-indicator-container p {
+    margin: 0;
+    font-size: 0.8em;
     text-align: center;
 }
 
-.indicator-window h2 {
-    font-size: 0.8em;
-    margin-top: 0;
-    margin-bottom: 5px;
-    color: #555;
+.instructions {
+    margin-bottom: 20px; /* Space below instructions */
+    text-align: center;
+    line-height: 1.5;
 }
 
-#indicatorCanvas {
-    background-color: #eee;
-    border: 1px solid #aaa;
-    display: block;
-    margin: 0 auto 5px auto;
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-.indicator-window p {
-    font-size: 0.7em;
-    color: #666;
-    margin: 0;
+button:hover {
+    background-color: #45a049;
+}
+
+/* Remove old styles if they exist */
+.indicator-window {
+    /* Remove old styles if they conflict */
 }
 
 .controls-info {
-    margin-bottom: 15px;
-    font-size: 0.9em;
-    color: #444;
-}
-
-.controls-info p {
-    margin: 5px 0;
-}
-
-a {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 15px;
-    background-color: #5cb85c;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-a:hover {
-    background-color: #4cae4c;
+    /* Remove old styles if they conflict */
 } 
