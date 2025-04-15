@@ -1,0 +1,32 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+AI Development Rules for Pool XL (KJ_Game_Suite)
+Visuals vs. Physics: Remember that the visual table elements (border, rails, felt) drawn on the canvas might have different dimensions than the Matter.js physics boundaries (walls/cushions).
+Action: Ensure physics walls (wallTop, wallBottom, etc.) align precisely with the inner edge of the playable felt area (defined by PLAYFIELD_X, PLAYFIELD_Y, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT), not the visual outer border. Balls should only interact physically within this playfield.
+Pocket Placement & Detection:
+Visuals: Pockets should be drawn overlapping the visual rails for realism. Their center coordinates (pockets array) should reflect this visual placement (currently at the playfield corners).
+Physics: The pocket detection logic in the gameLoop uses POCKET_RADIUS. Ensure this radius is appropriate for capturing balls near the visual pocket centers.
+Drawing Order Matters: Render canvas elements in the correct sequence for layering:
+Outer Border (drawTable)
+Rails (drawTable)
+Felt (drawTable)
+Pockets (drawPockets called within drawTable)
+Balls (drawBall called for each ball in gameLoop)
+UI Elements (Cue stick, power bar, indicator, guideline - drawn last in gameLoop when gamePhase === 'aiming')
+Physics Tuning:
+Use cushionOptions.restitution to control cushion bounciness (currently 0.9).
+Use ballOptions.restitution, friction, frictionAir, and frictionStatic to control ball behavior. frictionAir is particularly important for how quickly balls slow down.
+When applying force (especially for shooting/spin), use Matter.Body.applyForce at a specific point, not just setVelocity. Use scaling factors like FORCE_SCALING to translate input power into appropriate force magnitudes.
+Coordinate Systems: Be mindful of canvas coordinates (pixels, origin top-left) for drawing and Matter.js world coordinates for physics. Use getMousePos for accurate mouse mapping.
+Game State: Strictly adhere to gamePhase ('aiming', 'simulating') to control input handling, physics updates (Engine.update), and UI visibility. Only update the engine when simulationRunning is true.
+Ball Data: Use ballDataMap (mapping body.id to { number, color, isSolid }) to store and retrieve custom ball properties. Do not try to store this directly on Matter.js body objects.
+Constants: Use the defined constants (e.g., BORDER_SIZE, RAIL_SIZE, PLAYFIELD_X/Y/WIDTH/HEIGHT, POCKET_RADIUS, BALL_RADIUS) for calculations related to table geometry, physics, and drawing to maintain consistency.
+
+- You can @ files here
+- You can use markdown but dont have to

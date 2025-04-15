@@ -71,7 +71,7 @@ const pockets = [
 // --- Static Table Bodies (Cushions) ---
 const cushionOptions = {
     isStatic: true,
-    restitution: 0.9, // Increased bounciness of cushions (was 0.8)
+    restitution: 0.8, // Reduced cushion bounciness slightly (was 0.9)
     friction: 0.1, // Low friction for cushions
     slop: 0.01, // Adjust penetration tolerance
 };
@@ -110,11 +110,11 @@ World.add(world, [wallTop, wallBottom, wallLeft, wallRight]);
 // --- Ball Physics Properties ---
 const ballOptions = {
     isStatic: false, // Explicitly set balls as dynamic
-    restitution: 0.9, // How bouncy balls are
-    friction: 0.01, // Friction between balls (relatively low)
-    frictionAir: 0.005, // Decreased frictionAir significantly
-    frictionStatic: 0.01, // Static friction
-    density: 0.0001, // Decreased density significantly
+    restitution: 0.35, // Reduced bounciness significantly (was 0.6)
+    friction: 0.05, // Keep increased friction (was 0.01)
+    frictionAir: 0.005, // Keep frictionAir for now
+    frictionStatic: 0.1, // Keep increased static friction (was 0.01)
+    density: 0.0001, // Keep density for now
     slop: 0.01, // Penetration tolerance
     label: 'ball' // Custom label for identifying balls
 };
@@ -172,7 +172,8 @@ function handleKeyUp(event) {
 }
 
 // Force scaling factor (adjust as needed)
-const FORCE_SCALING = 5.0; // Increased FORCE_SCALING again
+// Significantly reduced for applyForce, needs tuning!
+const FORCE_SCALING = 0.000035; // Reduced slightly again (was 0.00005)
 
 // Store the latest mouse position globally for cue stick drawing
 let latestMousePos = null;
@@ -199,26 +200,38 @@ function shoot() {
     // Calculate angle directly from cue ball to mouse position at the time of shooting
     const dx = latestMousePos.x - cueBallBody.position.x;
     const dy = latestMousePos.y - cueBallBody.position.y;
-    const angle = Math.atan2(dy, dx); // Angle FROM cue ball TO mouse
+    const shootAngle = Math.atan2(dy, dx) + Math.PI; // Angle AWAY from mouse
 
-    const targetSpeed = cueStick.power * 0.25; // Keep reduced power
+    // Calculate force magnitude based on power
+    const forceMagnitude = cueStick.power * FORCE_SCALING;
     
-    // Calculate base vector TOWARDS mouse
-    const vectorX = Math.cos(angle) * targetSpeed;
-    const vectorY = Math.sin(angle) * targetSpeed;
+    // Calculate force vector based on angle and magnitude
+    const forceVector = {
+        x: Math.cos(shootAngle) * forceMagnitude,
+        y: Math.sin(shootAngle) * forceMagnitude
+    };
 
-    // Apply the REVERSE vector (AWAY from mouse, in the direction the tip points)
-    const velocityVector = {
-        x: -vectorX,
-        y: -vectorY
+    // Calculate the point on the cue ball to apply the force (relative to center)
+    // aimPoint x/y range from -1 to 1. Scale it by ball radius.
+    // Offset slightly so max spin isn't exactly at the edge.
+    const spinOffsetScale = BALL_RADIUS * 0.7; 
+    const forcePosition = {
+        x: aimPoint.x * spinOffsetScale,
+        y: aimPoint.y * spinOffsetScale
     };
 
     // Debug log
-    console.log(`SHOOT: Power=${cueStick.power}, Angle=${angle + Math.PI}, Velocity=(${velocityVector.x}, ${velocityVector.y})`); // Log opposite angle
+    console.log(`SHOOT: Power=${cueStick.power}, Angle=${shootAngle.toFixed(2)}, ForceMag=${forceMagnitude.toExponential(2)}`);
+    console.log(`Applying force at offset: (${forcePosition.x.toFixed(2)}, ${forcePosition.y.toFixed(2)})`);
 
+    // Apply force at the calculated position
     Matter.Sleeping.set(cueBallBody, false);
-    Body.setStatic(cueBallBody, false);
-    Matter.Body.setVelocity(cueBallBody, velocityVector);
+    // Body.setStatic(cueBallBody, false); // Should already be dynamic
+    Matter.Body.applyForce(cueBallBody, cueBallBody.position, forceVector); // Apply force at the calculated point on the ball
+    // Correction: applyForce position is relative to the body's center of mass, not world coords
+    // Matter.Body.applyForce(cueBallBody, { x: cueBallBody.position.x + forcePosition.x, y: cueBallBody.position.y + forcePosition.y }, forceVector);
+    // Correction 2: The position vector is relative to the *center of mass* which is (0,0) in local coords for a circle
+    Matter.Body.applyForce(cueBallBody, forcePosition, forceVector);
 
     cueStick.power = 0; // Reset power after shooting
 }
