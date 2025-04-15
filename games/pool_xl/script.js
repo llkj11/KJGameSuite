@@ -19,9 +19,11 @@ engine.gravity.y = 0; // No gravity in top-down pool
 // --- Game Constants (Adjusted for Matter.js) ---
 const BALL_RADIUS = 10;
 const POCKET_RADIUS = 18;
-const TABLE_WIDTH = poolTableCanvas.width;
-const TABLE_HEIGHT = poolTableCanvas.height;
-const CUSHION_THICKNESS = 20; // Thickness of the cushion bodies
+const TABLE_WIDTH = 1000; // Increased width
+const TABLE_HEIGHT = 500; // Increased height
+const BORDER_SIZE = 40; // New: thick outer border
+const RAIL_SIZE = 32;   // New: rail/cushion width
+const CUSHION_THICKNESS = 20; // Physical thickness (for physics)
 const CUE_BALL_COLOR = 'white';
 const EIGHT_BALL_COLOR = 'black';
 const BALL_COLORS = {
@@ -52,26 +54,57 @@ const CUE_TIP_RADIUS = 3;
 const MAX_POWER = 50;
 const POWER_INCREMENT = 0.5;
 
-// Pocket positions (still needed for logic)
+// Pocket positions (moved outward to rail/border intersection)
+const PLAYFIELD_X = BORDER_SIZE + RAIL_SIZE;
+const PLAYFIELD_Y = BORDER_SIZE + RAIL_SIZE;
+const PLAYFIELD_WIDTH = TABLE_WIDTH - 2 * (BORDER_SIZE + RAIL_SIZE);
+const PLAYFIELD_HEIGHT = TABLE_HEIGHT - 2 * (BORDER_SIZE + RAIL_SIZE);
 const pockets = [
-    { x: 0, y: 0 }, { x: TABLE_WIDTH / 2, y: 0 }, { x: TABLE_WIDTH, y: 0 },
-    { x: 0, y: TABLE_HEIGHT }, { x: TABLE_WIDTH / 2, y: TABLE_HEIGHT }, { x: TABLE_WIDTH, y: TABLE_HEIGHT },
+    { x: PLAYFIELD_X, y: PLAYFIELD_Y },
+    { x: PLAYFIELD_X + PLAYFIELD_WIDTH / 2, y: PLAYFIELD_Y },
+    { x: PLAYFIELD_X + PLAYFIELD_WIDTH, y: PLAYFIELD_Y },
+    { x: PLAYFIELD_X, y: PLAYFIELD_Y + PLAYFIELD_HEIGHT },
+    { x: PLAYFIELD_X + PLAYFIELD_WIDTH / 2, y: PLAYFIELD_Y + PLAYFIELD_HEIGHT },
+    { x: PLAYFIELD_X + PLAYFIELD_WIDTH, y: PLAYFIELD_Y + PLAYFIELD_HEIGHT },
 ];
 
 // --- Static Table Bodies (Cushions) ---
 const cushionOptions = {
     isStatic: true,
-    restitution: 0.8, // Bounciness of cushions
+    restitution: 0.9, // Increased bounciness of cushions (was 0.8)
     friction: 0.1, // Low friction for cushions
     slop: 0.01, // Adjust penetration tolerance
 };
 
-// Create cushion bodies slightly outside the visible table area
-const wallTop = Bodies.rectangle(TABLE_WIDTH / 2, -CUSHION_THICKNESS / 2, TABLE_WIDTH, CUSHION_THICKNESS, cushionOptions);
-const wallBottom = Bodies.rectangle(TABLE_WIDTH / 2, TABLE_HEIGHT + CUSHION_THICKNESS / 2, TABLE_WIDTH, CUSHION_THICKNESS, cushionOptions);
-const wallLeft = Bodies.rectangle(-CUSHION_THICKNESS / 2, TABLE_HEIGHT / 2, CUSHION_THICKNESS, TABLE_HEIGHT, cushionOptions);
-const wallRight = Bodies.rectangle(TABLE_WIDTH + CUSHION_THICKNESS / 2, TABLE_HEIGHT / 2, CUSHION_THICKNESS, TABLE_HEIGHT, cushionOptions);
-
+// Move cushions to the edge of the felt (playfield)
+const wallTop = Bodies.rectangle(
+    TABLE_WIDTH / 2,
+    PLAYFIELD_Y - CUSHION_THICKNESS / 2,
+    PLAYFIELD_WIDTH,
+    CUSHION_THICKNESS,
+    cushionOptions
+);
+const wallBottom = Bodies.rectangle(
+    TABLE_WIDTH / 2,
+    PLAYFIELD_Y + PLAYFIELD_HEIGHT + CUSHION_THICKNESS / 2,
+    PLAYFIELD_WIDTH,
+    CUSHION_THICKNESS,
+    cushionOptions
+);
+const wallLeft = Bodies.rectangle(
+    PLAYFIELD_X - CUSHION_THICKNESS / 2,
+    TABLE_HEIGHT / 2,
+    CUSHION_THICKNESS,
+    PLAYFIELD_HEIGHT,
+    cushionOptions
+);
+const wallRight = Bodies.rectangle(
+    PLAYFIELD_X + PLAYFIELD_WIDTH + CUSHION_THICKNESS / 2,
+    TABLE_HEIGHT / 2,
+    CUSHION_THICKNESS,
+    PLAYFIELD_HEIGHT,
+    cushionOptions
+);
 World.add(world, [wallTop, wallBottom, wallLeft, wallRight]);
 
 // --- Ball Physics Properties ---
@@ -286,74 +319,184 @@ function setupRack() {
     console.log(`Rack setup complete. ${objectBallBodies.length} object balls, 1 cue ball.`);
 }
 
-// --- Drawing (Needs adapting) ---
-function drawBall(body) { // Now takes a Matter.js body
+// --- Enhanced Drawing Functions ---
+
+function drawTable() {
+    // Draw outer border (wood)
+    ctx.save();
+    ctx.clearRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
+    const borderGradient = ctx.createLinearGradient(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
+    borderGradient.addColorStop(0, '#a0522d');
+    borderGradient.addColorStop(0.5, '#8d5524');
+    borderGradient.addColorStop(1, '#a0522d');
+    ctx.fillStyle = borderGradient;
+    ctx.fillRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
+
+    // Draw rail/cushion (darker wood)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(BORDER_SIZE, BORDER_SIZE, TABLE_WIDTH - 2 * BORDER_SIZE, TABLE_HEIGHT - 2 * BORDER_SIZE);
+    ctx.clip();
+    const railGradient = ctx.createLinearGradient(0, BORDER_SIZE, 0, TABLE_HEIGHT - BORDER_SIZE);
+    railGradient.addColorStop(0, '#6b4226');
+    railGradient.addColorStop(1, '#4e2e0e');
+    ctx.fillStyle = railGradient;
+    ctx.fillRect(BORDER_SIZE, BORDER_SIZE, TABLE_WIDTH - 2 * BORDER_SIZE, TABLE_HEIGHT - 2 * BORDER_SIZE);
+    ctx.restore();
+
+    // Draw felt (main play area)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(BORDER_SIZE + RAIL_SIZE, BORDER_SIZE + RAIL_SIZE, TABLE_WIDTH - 2 * (BORDER_SIZE + RAIL_SIZE), TABLE_HEIGHT - 2 * (BORDER_SIZE + RAIL_SIZE));
+    ctx.clip();
+    const feltGradient = ctx.createLinearGradient(0, BORDER_SIZE + RAIL_SIZE, 0, TABLE_HEIGHT - BORDER_SIZE - RAIL_SIZE);
+    feltGradient.addColorStop(0, '#2a623d');
+    feltGradient.addColorStop(1, '#1a4d2e');
+    ctx.fillStyle = feltGradient;
+    ctx.fillRect(BORDER_SIZE + RAIL_SIZE, BORDER_SIZE + RAIL_SIZE, TABLE_WIDTH - 2 * (BORDER_SIZE + RAIL_SIZE), TABLE_HEIGHT - 2 * (BORDER_SIZE + RAIL_SIZE));
+    ctx.restore();
+
+    // Draw rail bevel/highlight (for 3D effect)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(BORDER_SIZE, BORDER_SIZE, TABLE_WIDTH - 2 * BORDER_SIZE, TABLE_HEIGHT - 2 * BORDER_SIZE);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(BORDER_SIZE + 4, BORDER_SIZE + 4, TABLE_WIDTH - 2 * BORDER_SIZE - 8, TABLE_HEIGHT - 2 * BORDER_SIZE - 8);
+    ctx.restore();
+
+    // Draw pockets (on top of rails)
+    drawPockets();
+}
+
+function drawPockets() {
+    // Draw pockets as circles overlapping rails
+    const visualPocketRadius = POCKET_RADIUS * 1.25;
+    pockets.forEach(pocket => {
+        // Pocket shadow for depth
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pocket.x, pocket.y, visualPocketRadius + 4, 0, Math.PI * 2);
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#000';
+        ctx.fill();
+        ctx.restore();
+        // Main pocket
+        const grad = ctx.createRadialGradient(
+            pocket.x, pocket.y, visualPocketRadius * 0.1,
+            pocket.x, pocket.y, visualPocketRadius
+        );
+        grad.addColorStop(0, '#222');
+        grad.addColorStop(1, '#000');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(pocket.x, pocket.y, visualPocketRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+    });
+}
+
+function drawBall(body) { 
     const ballData = ballDataMap.get(body.id);
-    if (!ballData) return; // Should not happen
+    if (!ballData) return;
 
     const pos = body.position;
-    const angle = body.angle; // Matter.js provides body angle
+    const angle = body.angle; 
 
     ctx.save();
-    ctx.translate(pos.x, pos.y);
-    ctx.rotate(angle);
-    ctx.translate(-pos.x, -pos.y); // Translate back to draw at correct global pos
+    ctx.translate(pos.x, pos.y); 
 
-    // Draw main circle centered at body position
+    // --- Ball Shadow --- 
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
-    ctx.fillStyle = ballData.color;
-    ctx.shadowColor = '#222';
-    ctx.shadowBlur = 6;
+    ctx.arc(0, BALL_RADIUS * 0.1, BALL_RADIUS * 0.95, 0, Math.PI * 2); // Offset shadow slightly
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 3;
     ctx.fill();
     ctx.closePath();
+    ctx.shadowColor = 'transparent'; // Reset shadow for other elements
     ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
 
-    // Draw details (number/stripe/8-ball) - adapted for Matter.js body pos
+    // --- Ball Body --- 
+    // Rotate context for drawing details
+    ctx.rotate(angle);
+
+    // Main ball color with gradient
+    const gradient = ctx.createRadialGradient(
+        -BALL_RADIUS * 0.3, -BALL_RADIUS * 0.4, BALL_RADIUS * 0.1, // Light spot center
+         0, 0, BALL_RADIUS                      // Outer radius
+    );
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)'); // Highlight color
+    gradient.addColorStop(0.3, ballData.color);            // Main ball color
+    gradient.addColorStop(1, ballData.color);               // Main ball color edge
+    
+    ctx.beginPath();
+    ctx.arc(0, 0, BALL_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.closePath();
+
+    // --- Ball Details (Number/Stripe) - Rotated --- 
     if (ballData.number > 0) {
+        ctx.fillStyle = 'white'; // Number background color
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const fontSize = BALL_RADIUS * 0.9;
+        ctx.font = `bold ${fontSize}px Arial`;
+
         if (ballData.number === 8) {
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 12px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('8', pos.x, pos.y);
-        } else if (!ballData.isSolid) { // Stripe balls
-            ctx.fillStyle = 'white';
-            ctx.fillRect(pos.x - BALL_RADIUS * 0.7, pos.y - BALL_RADIUS * 0.4, BALL_RADIUS * 1.4, BALL_RADIUS * 0.8);
-            ctx.fillStyle = 'black';
-            ctx.font = 'bold 10px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(ballData.number.toString(), pos.x, pos.y);
-            // Optional outline for stripe ball clarity
+            // 8-Ball Number (white on black)
             ctx.beginPath();
-            ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-            ctx.closePath();
-        } else { // Solid balls
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(pos.x, pos.y, BALL_RADIUS * 0.6, 0, Math.PI * 2);
+            ctx.arc(0, 0, BALL_RADIUS * 0.6, 0, Math.PI * 2);
+            ctx.fillStyle = EIGHT_BALL_COLOR; // Black circle
             ctx.fill();
             ctx.closePath();
+            ctx.fillStyle = 'white'; // White number
+            ctx.fillText('8', 0, 0);
+        } else if (!ballData.isSolid) { // Stripe balls
+            // Draw stripe first (white band)
+            const stripeHeight = BALL_RADIUS * 1.2;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(-BALL_RADIUS, -stripeHeight / 2, BALL_RADIUS * 2, stripeHeight);
+            // Draw number circle on top
+            ctx.beginPath();
+            ctx.arc(0, 0, BALL_RADIUS * 0.6, 0, Math.PI * 2);
+            ctx.fill(); // White circle
+            ctx.closePath();
+            // Draw number text
             ctx.fillStyle = 'black';
-            ctx.font = 'bold 10px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(ballData.number.toString(), pos.x, pos.y);
+            ctx.fillText(ballData.number.toString(), 0, 0);
+        } else { // Solid balls
+            // Draw number circle
+            ctx.beginPath();
+            ctx.arc(0, 0, BALL_RADIUS * 0.6, 0, Math.PI * 2);
+            ctx.fill(); // White circle
+            ctx.closePath();
+            // Draw number text
+            ctx.fillStyle = 'black';
+            ctx.fillText(ballData.number.toString(), 0, 0);
         }
-    } else { // Cue ball outline
+    } else { // Cue ball specific appearance
+         // Simple highlight for cue ball
+         const cueGradient = ctx.createRadialGradient(
+            -BALL_RADIUS * 0.4, -BALL_RADIUS * 0.4, BALL_RADIUS * 0.1,
+             0, 0, BALL_RADIUS
+         );
+         cueGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+         cueGradient.addColorStop(0.4, CUE_BALL_COLOR);
+         cueGradient.addColorStop(1, CUE_BALL_COLOR);
+         ctx.fillStyle = cueGradient;
          ctx.beginPath();
-         ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
-         ctx.strokeStyle = '#aaaaaa';
-         ctx.lineWidth = 1;
-         ctx.stroke();
+         ctx.arc(0, 0, BALL_RADIUS, 0, Math.PI * 2);
+         ctx.fill();
          ctx.closePath();
     }
 
-    ctx.restore();
+    ctx.restore(); // Restore context rotation and translation
 }
 
 function drawCueStick() {
@@ -418,17 +561,6 @@ function drawIndicator() {
     indicatorCtx.fillStyle = 'red';
     indicatorCtx.fill();
     indicatorCtx.closePath();
-}
-
-function drawPockets() {
-    // This function remains the same (draws visual representation)
-    ctx.fillStyle = 'black';
-    pockets.forEach(pocket => {
-        ctx.beginPath();
-        ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.closePath();
-    });
 }
 
 function drawPowerBar() {
@@ -622,17 +754,33 @@ function gameLoop(timestamp) {
     }
 
     // 5. Drawing
+    // Clear canvas completely
     ctx.clearRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
-    drawTable();
-    drawPockets();
+    
+    // Draw Table elements (felt, pockets, cushions, border)
+    drawTable(); 
 
+    // Draw Balls on top of table
     const allBodies = Matter.Composite.allBodies(world);
     allBodies.forEach(body => {
         if (body.label === 'ball' || body.label === 'cueBall') {
             drawBall(body);
         }
+        // Optionally draw cushions/walls for debug
+        // else if (body.isStatic) { 
+        //     // Simple static body rendering
+        //     ctx.fillStyle = 'grey';
+        //     ctx.beginPath();
+        //     body.vertices.forEach((v, i) => {
+        //         if (i === 0) ctx.moveTo(v.x, v.y);
+        //         else ctx.lineTo(v.x, v.y);
+        //     });
+        //     ctx.closePath();
+        //     ctx.fill();
+        // }
     });
 
+    // Draw UI elements (stick, power bar, etc.) on top of everything
     if (gamePhase === 'aiming') {
         drawCueStick();
         drawPowerBar();
@@ -691,24 +839,13 @@ poolTableCanvas.addEventListener('mouseup', (e) => {
 
 function getMousePos(evt) {
     const rect = poolTableCanvas.getBoundingClientRect();
+    // Ensure we use the current canvas dimensions
+    const currentCanvasWidth = poolTableCanvas.width; 
+    const currentCanvasHeight = poolTableCanvas.height;
     return {
-        x: (evt.clientX - rect.left) * (poolTableCanvas.width / rect.width),
-        y: (evt.clientY - rect.top) * (poolTableCanvas.height / rect.height)
+        x: (evt.clientX - rect.left) * (currentCanvasWidth / rect.width),
+        y: (evt.clientY - rect.top) * (currentCanvasHeight / rect.height)
     };
-}
-
-// --- Visual Improvements ---
-// Table gradient
-function drawTable() {
-    const grad = ctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
-    grad.addColorStop(0, '#357a38');
-    grad.addColorStop(1, '#1b5e20');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
-    // Table border
-    ctx.lineWidth = 16;
-    ctx.strokeStyle = '#8d5524';
-    ctx.strokeRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
 }
 
 // --- Initial Setup ---
