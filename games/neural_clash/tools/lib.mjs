@@ -69,8 +69,13 @@ export async function post(url, headers, body, tries = 4) {
   }
 }
 
+const ALIASES = {
+  GEMINI_API_KEY: ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENAI_API_KEY'],
+  ELEVENLABS_API_KEY: ['ELEVENLABS_API_KEY', 'ELEVEN_API_KEY', 'XI_API_KEY']
+};
+
 export function requireKey(name) {
-  const k = process.env[name];
+  const k = (ALIASES[name] || [name]).map((n) => process.env[n]).find(Boolean);
   if (!k) {
     console.error(`Missing ${name}. Set it in your environment, e.g.  ${name}=... node ${path.basename(process.argv[1])}`);
     process.exit(1);
