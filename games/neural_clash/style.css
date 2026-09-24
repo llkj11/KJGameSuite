@@ -1,0 +1,36 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#screen {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+  cursor: pointer;
+}
+.bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  height: 20px;
+  font: 11px/20px monospace;
+  color: #5a5a7a;
+}
+.bar a {
+  color: #8a8ab0;
+  text-decoration: none;
+}
+.bar a:hover {
+  color: #fff;
+}
+@media (max-width: 700px) {
+  .bar span { display: none; }
+}
