@@ -10,7 +10,8 @@
     "gemini": "music/gemini.mp3",
     "deepseek": "music/deepseek.mp3",
     "qwen": "music/qwen.mp3",
-    "kimi": "music/kimi.mp3"
+    "kimi": "music/kimi.mp3",
+    "mythos": "music/mythos.mp3"
   },
   "sfx": {},
   "voice": {}
