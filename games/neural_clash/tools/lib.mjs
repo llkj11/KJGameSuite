@@ -47,6 +47,7 @@ export function args() {
     else if (a[i] === '--dry-run') out.dry = true;
     else if (a[i] === '--model') out.model = a[++i];
     else if (a[i] === '--list-voices') out.listVoices = true;
+    else if (a[i] === '--process-only') out.processOnly = true;
   }
   return out;
 }
@@ -81,4 +82,17 @@ export function requireKey(name) {
     process.exit(1);
   }
   return k;
+}
+
+// Finds an ffmpeg binary: $FFMPEG, then PATH, then the pip package imageio-ffmpeg.
+import { execFileSync } from 'node:child_process';
+export function findFfmpeg() {
+  const cands = [process.env.FFMPEG, 'ffmpeg'].filter(Boolean);
+  try {
+    cands.push(execFileSync('python3', ['-c', 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())']).toString().trim());
+  } catch { /* not installed */ }
+  for (const c of cands) {
+    try { execFileSync(c, ['-version'], { stdio: 'ignore' }); return c; } catch { /* try next */ }
+  }
+  return null;
 }

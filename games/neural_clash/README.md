@@ -61,6 +61,15 @@ ELEVENLABS_API_KEY=... node tools/generate_voices.mjs
 
 Prompts and voice choices are in `tools/prompts.json`.
 
+**Music post-processing:** raw Lyria files go to `assets/music/raw/`, which is gitignored. When `ffmpeg` is on the PATH, or `pip install imageio-ffmpeg` has been run, each track is then processed:
+
+- Silence is trimmed from both ends, so the track loops cleanly.
+- Loudness is matched to the synth.
+- The victory jingle is cut to 7 seconds.
+- The result is encoded as a 128 kbps MP3 in `assets/music/`.
+
+`--process-only` re-runs this step without calling the API. In the game, music files are streamed rather than decoded whole. Returning to a theme on the select screen resumes it where it left off.
+
 **Setup notes:**
 
 - The scripts need Node 18 or newer.

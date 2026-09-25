@@ -329,23 +329,40 @@
     setTimeout(function () { self.stopped = true; try { self.gain.disconnect(); } catch (e) { /* */ } }, (sec || 0.05) * 1000 + 200);
   };
 
-  // Plays a decoded audio asset (Lyria output) on loop, bypassing the SNES bus.
-  function AssetPlayer(buf, loop) {
-    this.gain = ctx.createGain();
-    this.gain.gain.value = 0.0001;
-    this.gain.connect(musicGain);
-    this.src = ctx.createBufferSource();
-    this.src.buffer = buf;
-    this.src.loop = loop !== false;
-    this.src.connect(this.gain);
-    this.src.start();
-  }
-  AssetPlayer.prototype.schedule = function () {};
-  AssetPlayer.prototype.fadeIn = Player.prototype.fadeIn;
-  AssetPlayer.prototype.stop = function (sec) {
+  // Streams a generated music file (Lyria output) through an <audio> element, bypassing the
+  // SNES bus. Elements are cached per track so revisiting a theme resumes where it left off
+  // and full songs are never decoded into memory.
+  var streams = {};
+  function StreamPlayer(id, url, loop, fromStart, onFail) {
+    var s = streams[id];
+    if (!s) {
+      var el = new Audio();
+      el.preload = 'auto';
+      el.src = 'assets/' + url;
+      var g = ctx.createGain();
+      g.gain.value = 0.0001;
+      ctx.createMediaElementSource(el).connect(g);
+      g.connect(musicGain);
+      s = streams[id] = { el: el, gain: g, token: 0 };
+    }
     var self = this;
-    Player.prototype.stop.call(this, sec);
-    setTimeout(function () { try { self.src.stop(); } catch (e) { /* */ } }, (sec || 0.05) * 1000 + 100);
+    this.s = s; this.gain = s.gain; this.token = ++s.token;
+    s.el.onerror = function () { if (self.token === s.token) { delete streams[id]; onFail(); } };
+    s.el.loop = loop;
+    if (fromStart || s.el.ended) { try { s.el.currentTime = 0; } catch (e) { /* not loaded yet */ } }
+    var pr = s.el.play();
+    if (pr && pr.catch) pr.catch(function () { if (self.token === s.token && !self.stopped) onFail(); });
+  }
+  StreamPlayer.prototype.schedule = function () {};
+  StreamPlayer.prototype.fadeIn = Player.prototype.fadeIn;
+  StreamPlayer.prototype.stop = function (sec) {
+    var self = this, s = this.s, g = s.gain.gain;
+    sec = sec || 0.05;
+    g.cancelScheduledValues(ctx.currentTime);
+    g.setValueAtTime(Math.max(0.0001, g.value), ctx.currentTime);
+    g.exponentialRampToValueAtTime(0.0001, ctx.currentTime + sec);
+    this.stopped = true;
+    setTimeout(function () { if (s.token === self.token) s.el.pause(); }, sec * 1000 + 60);
   };
 
   var players = [];
@@ -385,14 +402,11 @@
       current = p;
     };
     if (url) {
-      getBuffer(url, function (buf) {
-        if (currentId !== id) return;
-        if (!buf) return startSynth();
-        var p = new AssetPlayer(buf, loop);
-        p.fadeIn(opts.fadeIn || 0.05);
-        players.push(p);
-        current = p;
+      var p = new StreamPlayer(id, url, loop, opts.restart || !loop, function () {
+        if (current === p) { current = null; manifest.music[id] = null; startSynth(); }
       });
+      p.fadeIn(opts.fadeIn || 0.05);
+      current = p;
     } else startSynth();
   };
   A.stopMusic = function (fade) {
@@ -401,6 +415,11 @@
     currentId = null;
   };
   A.currentMusic = function () { return currentId; };
+  // For tests and debugging: which track is playing and whether it is a generated file or the synth.
+  A.musicState = function () {
+    return { id: currentId, source: current instanceof StreamPlayer ? 'file' : current ? 'synth' : null,
+      time: current instanceof StreamPlayer ? current.s.el.currentTime : null };
+  };
 
   // ------------------------------------------------------------------ assets
   function loadManifest() {

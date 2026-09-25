@@ -1,5 +1,11 @@
 {
-  "music": {},
+  "music": {
+    "title": "music/title.mp3",
+    "select": "music/select.mp3",
+    "fable": "music/fable.mp3",
+    "opus": "music/opus.mp3",
+    "astra": "music/astra.mp3"
+  },
   "sfx": {},
   "voice": {}
 }

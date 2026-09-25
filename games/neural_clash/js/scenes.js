@@ -571,7 +571,7 @@
           onQuit: function () { A.stopMusic(); Scenes.go(NC.TitleScene()); }
         });
         this.fight = fight;
-        A.playMusic(o.music);
+        A.playMusic(o.music, { restart: true });
       },
       update: function () { if (fight && !fight.over) fight.update(); },
       draw: function (ctx) { if (fight) fight.draw(ctx); }

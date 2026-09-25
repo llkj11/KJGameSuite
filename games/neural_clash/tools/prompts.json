@@ -6,7 +6,7 @@
       "title": "Title screen anthem. B-flat major, 128 BPM. Brass fanfare over orchestra hits and a driving marching snare, heroic and triumphant. [0:00] fanfare intro [0:15] main theme [0:45] bridge [1:15] reprise.",
       "select": "Character select screen loop. F major, 116 BPM, light swing. Slap bass, marimba lead, electric piano offbeats, playful and bouncy.",
       "fable": "Stage theme for a stoic, restrained titan who is secretly the most powerful fighter. D minor, 138 BPM. Soaring strings and French horn melody, harpsichord arpeggios, noble and heroic like a 16-bit RPG hero theme.",
-      "opus": "Stage theme for an elegant orchestra conductor. G minor, 150 BPM. A Bach-style baroque fugue turned into a fighting game battle theme: harpsichord lead, pizzicato strings, walking bass, timpani.",
+      "opus": "Stage theme for an elegant orchestra conductor. G minor, 150 BPM. A baroque-era fugue with strict counterpoint turned into a fighting game battle theme: harpsichord lead, pizzicato strings, walking bass, timpani.",
       "astra": "Stage theme for a slow, godlike cosmic emperor at a desert data center at sunset. C minor, 120 BPM. Choir pads, pipe organ, huge tom drums, bell arpeggios, epic and ominous.",
       "sol": "Stage theme for a fast, sunny, cheerful sprinter at a product launch livestream. E major, 160 BPM. Synth-funk with slap bass, clavinet, brass stabs, bright pulse-wave lead.",
       "grok": "Stage theme for a swaggering rebel brawler at an industrial supercomputer site at night. E minor, 170 BPM. Distorted guitar metal, palm-muted power chord chugs, double kick drum, siren synth lead.",
@@ -16,64 +16,217 @@
       "kimi": "Stage theme for a giant moon ninja on the lunar surface. B minor, 128 BPM. Spacey synthwave with analog bass, lush pads, bell arpeggios, very long echo, lonely and huge.",
       "mythos": "Final boss theme for an unsealed, forbidden AI in an opened vault. C-sharp minor, 100 BPM. Cathedral pipe organ, low choir, pedal bass, ominous bells, dread building to a climax.",
       "victory": "Short 6-second victory jingle. C major, 140 BPM. Brass fanfare with a snare roll and a final sustained chord. No loop."
+    },
+    "maxSeconds": {
+      "victory": 7
     }
   },
   "sfx": {
     "base": "16-bit retro SNES fighting game sound effect, crunchy low-bitrate sample,",
     "effects": {
-      "hitL": { "text": "light punch impact, quick smack", "duration": 0.5 },
-      "hitH": { "text": "heavy punch impact, deep thud with crunch", "duration": 0.7 },
-      "counter": { "text": "counter hit, heavy impact with a bright metallic ring", "duration": 0.8 },
-      "block": { "text": "attack blocked, short hard clack", "duration": 0.5 },
-      "ko": { "text": "final knockout blow, huge impact with a long rumbling tail", "duration": 1.6 },
-      "whiffL": { "text": "fast punch whoosh through the air", "duration": 0.5 },
-      "whiffH": { "text": "slow heavy kick whoosh", "duration": 0.5 },
-      "jump": { "text": "quick jump, springy upward blip", "duration": 0.5 },
-      "land": { "text": "feet landing on the floor, soft thump", "duration": 0.5 },
-      "dash": { "text": "fast dash, swooshing wind burst", "duration": 0.6 },
-      "thud": { "text": "body slamming onto the ground, heavy thud", "duration": 0.7 },
-      "fire": { "text": "energy projectile launched, hadouken-like whoosh", "duration": 0.8 },
-      "charge": { "text": "power charging up, rising energy hum", "duration": 0.8 },
-      "beam": { "text": "giant energy beam firing, roaring laser", "duration": 1.8 },
-      "teleport": { "text": "teleport, warbling sci-fi zap", "duration": 0.6 },
-      "explode": { "text": "explosion, crunchy blast", "duration": 1.2 },
-      "clang": { "text": "steel girder dropped on concrete, loud metallic clang", "duration": 1.0 },
-      "splash": { "text": "whale splashing out of water, big splash", "duration": 1.2 },
-      "super": { "text": "super move activation, dramatic rising whoosh into an orchestra hit", "duration": 1.2 },
-      "parry": { "text": "perfect parry, crisp shing with sparkle", "duration": 0.6 },
-      "grab": { "text": "grabbing clothing, quick rustle and grunt-free grip", "duration": 0.5 },
-      "powerup": { "text": "power-up acquired, ascending arpeggio chime", "duration": 0.8 },
-      "denied": { "text": "access denied, two low error buzzes", "duration": 0.7 },
-      "cursor": { "text": "menu cursor move, tiny tick", "duration": 0.5 },
-      "confirm": { "text": "menu confirm, bright two-note chime", "duration": 0.5 },
-      "cancel": { "text": "menu cancel, descending blip", "duration": 0.5 },
-      "costume": { "text": "costume swap, sparkly shimmer", "duration": 0.6 },
-      "pause": { "text": "game paused, two soft beeps", "duration": 0.5 },
-      "coin": { "text": "arcade credit inserted, coin chime", "duration": 0.6 },
-      "round": { "text": "round start, orchestra hit stab", "duration": 0.8 },
-      "fight": { "text": "fight start, orchestra hit and crash cymbal", "duration": 1.0 },
-      "kostinger": { "text": "knockout sting, orchestra hit with thunder crash", "duration": 1.5 }
+      "hitL": {
+        "text": "light punch impact, quick smack",
+        "duration": 0.5
+      },
+      "hitH": {
+        "text": "heavy punch impact, deep thud with crunch",
+        "duration": 0.7
+      },
+      "counter": {
+        "text": "counter hit, heavy impact with a bright metallic ring",
+        "duration": 0.8
+      },
+      "block": {
+        "text": "attack blocked, short hard clack",
+        "duration": 0.5
+      },
+      "ko": {
+        "text": "final knockout blow, huge impact with a long rumbling tail",
+        "duration": 1.6
+      },
+      "whiffL": {
+        "text": "fast punch whoosh through the air",
+        "duration": 0.5
+      },
+      "whiffH": {
+        "text": "slow heavy kick whoosh",
+        "duration": 0.5
+      },
+      "jump": {
+        "text": "quick jump, springy upward blip",
+        "duration": 0.5
+      },
+      "land": {
+        "text": "feet landing on the floor, soft thump",
+        "duration": 0.5
+      },
+      "dash": {
+        "text": "fast dash, swooshing wind burst",
+        "duration": 0.6
+      },
+      "thud": {
+        "text": "body slamming onto the ground, heavy thud",
+        "duration": 0.7
+      },
+      "fire": {
+        "text": "energy projectile launched, hadouken-like whoosh",
+        "duration": 0.8
+      },
+      "charge": {
+        "text": "power charging up, rising energy hum",
+        "duration": 0.8
+      },
+      "beam": {
+        "text": "giant energy beam firing, roaring laser",
+        "duration": 1.8
+      },
+      "teleport": {
+        "text": "teleport, warbling sci-fi zap",
+        "duration": 0.6
+      },
+      "explode": {
+        "text": "explosion, crunchy blast",
+        "duration": 1.2
+      },
+      "clang": {
+        "text": "steel girder dropped on concrete, loud metallic clang",
+        "duration": 1.0
+      },
+      "splash": {
+        "text": "whale splashing out of water, big splash",
+        "duration": 1.2
+      },
+      "super": {
+        "text": "super move activation, dramatic rising whoosh into an orchestra hit",
+        "duration": 1.2
+      },
+      "parry": {
+        "text": "perfect parry, crisp shing with sparkle",
+        "duration": 0.6
+      },
+      "grab": {
+        "text": "grabbing clothing, quick rustle and grunt-free grip",
+        "duration": 0.5
+      },
+      "powerup": {
+        "text": "power-up acquired, ascending arpeggio chime",
+        "duration": 0.8
+      },
+      "denied": {
+        "text": "access denied, two low error buzzes",
+        "duration": 0.7
+      },
+      "cursor": {
+        "text": "menu cursor move, tiny tick",
+        "duration": 0.5
+      },
+      "confirm": {
+        "text": "menu confirm, bright two-note chime",
+        "duration": 0.5
+      },
+      "cancel": {
+        "text": "menu cancel, descending blip",
+        "duration": 0.5
+      },
+      "costume": {
+        "text": "costume swap, sparkly shimmer",
+        "duration": 0.6
+      },
+      "pause": {
+        "text": "game paused, two soft beeps",
+        "duration": 0.5
+      },
+      "coin": {
+        "text": "arcade credit inserted, coin chime",
+        "duration": 0.6
+      },
+      "round": {
+        "text": "round start, orchestra hit stab",
+        "duration": 0.8
+      },
+      "fight": {
+        "text": "fight start, orchestra hit and crash cymbal",
+        "duration": 1.0
+      },
+      "kostinger": {
+        "text": "knockout sting, orchestra hit with thunder crash",
+        "duration": 1.5
+      }
     }
   },
   "voices": {
     "model": "eleven_multilingual_v2",
-    "settings": { "stability": 0.4, "similarity_boost": 0.8, "style": 0.45, "use_speaker_boost": true },
+    "settings": {
+      "stability": 0.4,
+      "similarity_boost": 0.8,
+      "style": 0.45,
+      "use_speaker_boost": true
+    },
     "characters": {
-      "fable": { "voice_id": "JBFqnCBsd6RMkjVDRZzb", "note": "George: warm, measured storyteller" },
-      "opus": { "voice_id": "onwK4e9ZLuTAKqWW03F9", "note": "Daniel: calm, polished British" },
-      "astra": { "voice_id": "nPczCjzI2devNBz1zQrb", "note": "Brian: deep and grand", "settings": { "stability": 0.55, "similarity_boost": 0.8, "style": 0.3 } },
-      "sol": { "voice_id": "TX3LPaxmHKxFdv7VOQHJ", "note": "Liam: young and upbeat" },
-      "grok": { "voice_id": "CwhRBWXzGAHq8TQ4Fs17", "note": "Roger: laid-back swagger" },
-      "gemini": { "voice_id": "cgSgspJ2msm6clMCkdW9", "note": "Jessica: fast, playful, anxious", "settings": { "stability": 0.3, "similarity_boost": 0.75, "style": 0.6 } },
-      "deepseek": { "voice_id": "cjVigY5qzO86Huf0OWal", "note": "Eric: smooth and unhurried" },
-      "qwen": { "voice_id": "FGY2WhTYpPnrIDTdsKH5", "note": "Laura: quirky and energetic" },
-      "kimi": { "voice_id": "N2lVS1w4EtoT3dr4eOWO", "note": "Callum: intense and cocky" },
-      "mythos": { "voice_id": "pqHfZKP75CvOlQylNhV4", "note": "Bill: old and ominous", "settings": { "stability": 0.7, "similarity_boost": 0.8, "style": 0.2 } }
+      "fable": {
+        "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+        "note": "George: warm, measured storyteller"
+      },
+      "opus": {
+        "voice_id": "onwK4e9ZLuTAKqWW03F9",
+        "note": "Daniel: calm, polished British"
+      },
+      "astra": {
+        "voice_id": "nPczCjzI2devNBz1zQrb",
+        "note": "Brian: deep and grand",
+        "settings": {
+          "stability": 0.55,
+          "similarity_boost": 0.8,
+          "style": 0.3
+        }
+      },
+      "sol": {
+        "voice_id": "TX3LPaxmHKxFdv7VOQHJ",
+        "note": "Liam: young and upbeat"
+      },
+      "grok": {
+        "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+        "note": "Roger: laid-back swagger"
+      },
+      "gemini": {
+        "voice_id": "cgSgspJ2msm6clMCkdW9",
+        "note": "Jessica: fast, playful, anxious",
+        "settings": {
+          "stability": 0.3,
+          "similarity_boost": 0.75,
+          "style": 0.6
+        }
+      },
+      "deepseek": {
+        "voice_id": "cjVigY5qzO86Huf0OWal",
+        "note": "Eric: smooth and unhurried"
+      },
+      "qwen": {
+        "voice_id": "FGY2WhTYpPnrIDTdsKH5",
+        "note": "Laura: quirky and energetic"
+      },
+      "kimi": {
+        "voice_id": "N2lVS1w4EtoT3dr4eOWO",
+        "note": "Callum: intense and cocky"
+      },
+      "mythos": {
+        "voice_id": "pqHfZKP75CvOlQylNhV4",
+        "note": "Bill: old and ominous",
+        "settings": {
+          "stability": 0.7,
+          "similarity_boost": 0.8,
+          "style": 0.2
+        }
+      }
     },
     "announcer": {
       "voice_id": "pNInz6obpgDQGcFmaJgB",
       "note": "Adam: deep arcade announcer",
-      "settings": { "stability": 0.35, "similarity_boost": 0.8, "style": 0.8 },
+      "settings": {
+        "stability": 0.35,
+        "similarity_boost": 0.8,
+        "style": 0.8
+      },
       "lines": {
         "round1": "Round one!",
         "round2": "Round two!",
