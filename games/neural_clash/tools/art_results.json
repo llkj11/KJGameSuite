@@ -338,5 +338,12 @@
  "mythos:win": "/generated_images/gpt_image_2.5_flare_edit_8c9b9286-de75-4a97-8c0a-bfa3f8a631a9.png",
  "mythos:taunt": "/generated_images/gpt_image_2.5_flare_edit_30ded692-e679-4925-8123-865a3a9fea63.png",
  "mythos:lose": "/generated_images/gpt_image_2.5_flare_edit_8d6e463f-baa9-425b-ab45-71aebf3616f5.png",
- "mythos:portrait": "/generated_images/gpt_image_2.5_flare_edit_5657f568-103c-4e93-aa06-8a6ac9f8a4cc.png"
+ "mythos:portrait": "/generated_images/gpt_image_2.5_flare_edit_5657f568-103c-4e93-aa06-8a6ac9f8a4cc.png",
+ "fx:spark_hit": "/generated_images/gemini_3.1_flash_image_preview_ebb5365f-a697-4b6e-9dac-2a52e0616405.png",
+ "fx:spark_big": "/generated_images/gemini_3.1_flash_image_preview_a14809f4-99f6-4e82-ac97-58aca247f2e5.png",
+ "fx:spark_counter": "/generated_images/gemini_3.1_flash_image_preview_26b32b19-7a24-4788-997a-0261909b5fff.png",
+ "fx:spark_block": "/generated_images/gemini_3.1_flash_image_preview_38c6eadd-fb86-401a-ba76-4928875a441d.png",
+ "fx:ko_burst": "/generated_images/gemini_3.1_flash_image_preview_55ddc96c-1525-46b0-9923-e0dbe5198bcd.png",
+ "fx:aura": "/generated_images/gemini_3.1_flash_image_preview_3609a94b-7a04-48e9-89f0-5cbc24b60a74.png",
+ "fx:dust": "/generated_images/gemini_3.1_flash_image_preview_b8321a9b-5acb-4042-acdf-fe74237f1698.png"
 }

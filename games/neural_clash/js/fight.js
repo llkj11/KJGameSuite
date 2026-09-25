@@ -27,6 +27,12 @@
     this.freeze = null;
     this.paused = false;
     this.pauseSel = 0;
+    // presentation: stage ambience/lighting, camera zoom punches, screen flashes, hit jitter
+    this.amb = NC.FX.ambient(this.stage);
+    this.light = NC.FX.LIGHT[this.stage] || null;
+    this.zoom = 1; this.zoomKick = 0; this.zoomX = W / 2; this.zoomY = H / 2;
+    this.flash = null;
+    this.hitVictim = null; this.hitJit = 1;
     this.startRound(true);
   }
   NC.Fight = Fight;
@@ -38,6 +44,7 @@
     if (this.mode === 'training') { a.meter = b.meter = NC.MAX_METER; }
     this.projectiles.length = 0; this.minions.length = 0; this.drops.length = 0; this.fx.length = 0; this.texts.length = 0;
     this.beam = null; this.whale = null; this.freeze = null; this.throwPair = null;
+    this.koFocus = null; this.zoom = 1; this.zoomKick = 0; this.flash = null;
     this.timer = NC.settings.timer; this.timerSub = 0;
     this.phase = first ? 'intro' : 'round';
     this.phaseT = 0;
@@ -92,8 +99,14 @@
 
   // ------------------------------------------------------------------ fx
   P.addFx = function (f) { f.t = 0; this.fx.push(f); return f; };
-  P.spark = function (x, y, kind) { this.addFx({ type: 'spark', kind: kind, x: x, y: y, life: 12 }); };
-  P.dust = function (x, n) { for (var i = 0; i < n; i++) this.addFx({ type: 'dust', x: x + (Math.random() - 0.5) * 30, y: -2, vx: (Math.random() - 0.5) * 1.6, vy: -Math.random() * 1.2, life: 20 + Math.random() * 10 }); };
+  var SPARK_LIFE = { hit: 11, big: 15, counter: 17, block: 10, ko: 34, burst: 22 };
+  P.spark = function (x, y, kind, facing) {
+    this.addFx({ type: 'spark', kind: kind, x: x, y: y, life: SPARK_LIFE[kind] || 12, rot: Math.random() * 6.28, facing: facing || 1 });
+    if (kind === 'big' || kind === 'counter') this.addFx({ type: 'ring', x: x, y: y, life: 12, col: kind === 'counter' ? '#ff9040' : '#ffffff' });
+  };
+  P.dust = function (x, n) {
+    if (n >= 8) this.addFx({ type: 'cloud', x: x, y: 0, life: 32, flip: Math.random() < 0.5, s: 0.55 + n / 30 });
+    for (var i = 0; i < n; i++) this.addFx({ type: 'dust', x: x + (Math.random() - 0.5) * 30, y: -2, vx: (Math.random() - 0.5) * 1.6, vy: -Math.random() * 1.2, life: 20 + Math.random() * 10 }); };
   P.smoke = function (x, y) { this.addFx({ type: 'dust', x: x, y: y, vx: (Math.random() - 0.5), vy: -0.6, life: 24, col: '#a0a0a8' }); };
   P.sparkle = function (x, y, col) { for (var i = 0; i < 10; i++) { var a = i / 10 * Math.PI * 2; this.addFx({ type: 'px', x: x, y: y, vx: Math.cos(a) * 2, vy: Math.sin(a) * 2, life: 18, col: col }); } };
   P.fxTrail = function (f, kind) {
@@ -116,9 +129,29 @@
     this.texts.push({ owner: f, text: text, color: color || '#ffffff', big: !!big, t: 0, life: big ? 80 : 55, x: f.x, y: f.y - 96 * f.s - (dy || 0) - n * 10 });
   };
   P.shake = function (a, t) { this.shakeA = Math.max(this.shakeA, a); this.shakeT = Math.max(this.shakeT, t || 8); };
+  // Camera punch-in toward a world point (decays over a few frames) and full-screen flashes.
+  P.punch = function (amt, wx, wy) {
+    this.zoomKick = Math.max(this.zoomKick, amt);
+    this.zoomX = U.clamp(wx - this.cam, 24, W - 24); this.zoomY = U.clamp(GY + wy, 40, H - 24);
+  };
+  P.screenFlash = function (col, a, dur) { this.flash = { col: col, a: a, t: 0, dur: dur }; };
+  // Visual state that keeps animating through hitstop, super freezes and KO slow motion.
+  P.tickVisual = function () {
+    this.amb.update();
+    this.zoomKick *= 0.82; if (this.zoomKick < 0.002) this.zoomKick = 0;
+    var target = 1;
+    if (this.koSlow > 0 && this.koFocus) {
+      target = 1.22;
+      this.zoomX += (U.clamp(this.koFocus.x - this.cam, 40, W - 40) - this.zoomX) * 0.2;
+      this.zoomY += (U.clamp(GY + this.koFocus.y - 40, 60, H - 40) - this.zoomY) * 0.2;
+    }
+    this.zoom += (target - this.zoom) * (target > this.zoom ? 0.12 : 0.06);
+    if (this.flash && ++this.flash.t >= this.flash.dur) this.flash = null;
+  };
 
   P.superFreeze = function (f) {
     this.freeze = { f: f, t: 0, dur: 46 };
+    this.screenFlash('#ffffff', 0.7, 6);
     NC.Audio.sfx('super');
     NC.Audio.speakLine(f.ch, 'super');
     this.popText(f, f.super.text || f.super.name, '#ffffff', true);
@@ -135,7 +168,7 @@
     if (d.fx.barrier > 0 && !box.unblockable) {
       this.popText(d, 'SERVER BUSY', '#7ad0ff', false, 8);
       NC.Audio.sfx('block');
-      this.spark(d.x + d.facing * 20, d.y - 50, 'block');
+      this.spark(d.x + d.facing * 20, d.y - 50, 'block', -d.facing);
       a.hb = null;
       return 'barrier';
     }
@@ -165,7 +198,7 @@
     a.addMeter(box.dmg * 0.15); d.addMeter(box.dmg * 0.1);
     this.hitstop = Math.max(this.hitstop, 5);
     var hb = d.hurtbox();
-    this.spark(d.x - d.facing * -8, (hb ? hb.y + 20 : d.y - 50), 'block');
+    this.spark(d.x - d.facing * -8, (hb ? hb.y + 20 : d.y - 50), 'block', -d.facing);
     NC.Audio.sfx('block');
     if (a.move) { a.move.connected = true; a.move.cancelWindow = 12; }
   };
@@ -218,8 +251,16 @@
     this.hitstop = Math.max(this.hitstop, Math.min(14, 6 + Math.floor(dmg / 18)));
     if (big) this.shake(2, 8);
     var hb = d.hurtbox() || { y: d.y - 60 };
-    this.spark(d.x - a.facing * 6, Math.max(hb.y + 12, d.y - 70 * d.s), counterHit ? 'counter' : big ? 'big' : 'hit');
-    NC.Audio.sfx(counterHit ? 'counter' : big ? 'hitH' : 'hitL');
+    var sy = Math.max(hb.y + 12, d.y - 70 * d.s), sx = d.x - a.facing * 6;
+    this.spark(sx, sy, counterHit ? 'counter' : big ? 'big' : 'hit', a.facing);
+    // impact frame: the victim jitters through hitstop and flashes white; big hits punch the camera in
+    this.hitVictim = d; this.hitJit = big || counterHit ? 2 : 1;
+    if (big || counterHit) {
+      d.fx.flash = Math.max(d.fx.flash, 2);
+      this.punch(counterHit ? 0.06 : 0.04, sx, sy);
+      this.screenFlash(counterHit ? '#ffb070' : '#ffffff', counterHit ? 0.28 : 0.18, 3);
+    }
+    NC.Audio.sfx(counterHit ? 'counter' : big ? 'hitH' : 'hitL', { power: U.clamp(dmg / 140, 0.15, 1) });
     if (a.move) { a.move.connected = true; a.move.cancelWindow = 12; }
     if (d.combo >= 2) {
       if (this.comboShow && this.comboShow.side === a.side && this.comboShow.t < 80) { this.comboShow.n = d.combo; this.comboShow.t = Math.min(this.comboShow.t, 10); }
@@ -244,9 +285,15 @@
     this.koSlow = 70;
     this.winnerSide = a.side;
     this.perfect = a.hp >= 1000;
-    NC.Audio.sfx('ko');
+    NC.Audio.sfx('ko', { power: 1 });
+    NC.Audio.sfx('koSlow');
     NC.Audio.announce('ko', 'K.O.');
     this.shake(5, 20);
+    // cinematic KO: burst, white flash, slow motion with the camera pushing in on the loser
+    this.addFx({ type: 'spark', kind: 'ko', x: d.x, y: d.y - 50 * d.s, life: 34, rot: Math.random() * 6.28 });
+    this.addFx({ type: 'ring', x: d.x, y: d.y - 50 * d.s, life: 24, col: '#fff0b0' });
+    this.screenFlash('#ffffff', 0.9, 10);
+    this.koFocus = d;
   };
 
   // ------------------------------------------------------------------ update
@@ -268,10 +315,20 @@
       fs[i].setInput(inp);
     }
 
+    this.tickVisual();
     if (this.freeze) {
       this.freeze.t++;
       this.updateFx();
-      if (this.freeze.t >= this.freeze.dur) this.freeze = null;
+      if (this.freeze.t >= this.freeze.dur) {
+        var sf = this.freeze.f;
+        this.freeze = null;
+        this.addFx({ type: 'spark', kind: 'burst', x: sf.x, y: sf.y - 44 * sf.s, life: 22, rot: Math.random() * 6.28 });
+        this.addFx({ type: 'ring', x: sf.x, y: sf.y - 44 * sf.s, life: 18, col: sf.ch.costumes[sf.ci].pal.glow });
+        this.screenFlash('#ffffff', 0.45, 5);
+        this.punch(0.07, sf.x, sf.y - 44);
+        this.shake(3, 10);
+        NC.Audio.sfx('superBurst');
+      }
       return;
     }
     if (this.hitstop > 0) { this.hitstop--; this.updateTexts(); return; }
@@ -622,23 +679,48 @@
     var sy = this.shakeA ? Math.round((Math.random() - 0.5) * this.shakeA) : 0;
     ctx.save();
     ctx.translate(sx, sy);
+    // camera zoom (hit punches, KO push-in); the 2x buffer keeps zoomed sprites crisp
+    var z = this.zoom + this.zoomKick;
+    if (z > 1.001) { ctx.translate(this.zoomX, this.zoomY); ctx.scale(z, z); ctx.translate(-this.zoomX, -this.zoomY); }
     NC.Stages.draw(ctx, this.stage, Math.round(this.cam), NC.frame);
-    var cam = Math.round(this.cam);
-    // super darkening (color math subtract)
+    var cam = Math.round(this.cam), t = NC.frame;
+    this.amb.draw(ctx, cam, 'back', t);
+    // KO slow motion drains the color out of the world
+    if (this.koSlow > 0 || (this.phase === 'ko' && this.phaseT < 20)) {
+      var k = this.koSlow > 0 ? Math.min(1, (70 - this.koSlow) / 10) : 1 - this.phaseT / 20;
+      ctx.save(); ctx.globalCompositeOperation = 'saturation'; ctx.globalAlpha = 0.85 * k;
+      ctx.fillStyle = '#808080'; ctx.fillRect(-8, -8, W + 16, H + 16); ctx.restore();
+      ctx.fillStyle = 'rgba(8,4,24,' + (0.35 * k) + ')'; ctx.fillRect(-8, -8, W + 16, H + 16);
+    }
+    // super darkening (color math subtract) with radial light rays behind the super user
     if (this.freeze || this.beam) {
-      ctx.fillStyle = 'rgba(0,0,20,' + (this.freeze ? 0.6 : 0.35) + ')';
-      ctx.fillRect(-4, -4, W + 8, H + 8);
+      ctx.fillStyle = 'rgba(0,0,20,' + (this.freeze ? 0.66 : 0.35) + ')';
+      ctx.fillRect(-8, -8, W + 16, H + 16);
+      if (this.freeze) this.drawSuperRays(ctx, cam);
     }
     var fs = this.fighters;
-    // shadows
+    // soft contact shadows
     for (var i = 0; i < 2; i++) {
       var f = fs[i];
       var sc = U.clamp(1 + f.y / 160, 0.4, 1);
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.beginPath(); ctx.ellipse(f.x - cam, GY + 1, 16 * f.s * sc, 3, 0, 0, 7); ctx.fill();
+      ctx.save(); ctx.translate(f.x - cam, GY + 1); ctx.scale(1, 0.2);
+      var R = 22 * f.s * sc, g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+      g.addColorStop(0, 'rgba(0,0,0,' + (0.55 * sc) + ')'); g.addColorStop(0.7, 'rgba(0,0,0,' + (0.3 * sc) + ')'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fill(); ctx.restore();
     }
     this.drawDrops(ctx, cam, true);
     this.drawFxLayer(ctx, cam, 'back');
+    // power auras: flaring during a super, flickering while the COMPUTE meter is full
+    for (i = 0; i < 2; i++) {
+      f = fs[i];
+      var glow = f.ch.costumes[f.ci].pal.glow;
+      var sup = this.freeze && this.freeze.f === f;
+      if (sup || (f.meter >= NC.MAX_METER && this.mode !== 'training' && f.state !== 'ko')) {
+        var fl = 0.85 + 0.15 * Math.sin(t * 0.9);
+        NC.FX.draw(ctx, 'aura', f.x - cam, GY + f.y + 6, { scale: (sup ? 1.35 : 1.05) * f.s * fl, tint: glow, anchorBottom: true, flip: (t >> 2) & 1,
+          alpha: sup ? 0.95 : 0.22 + 0.12 * Math.sin(t * 0.3) });
+      }
+    }
     // draw the attacker in front
     var order = fs[0].hb || fs[0].state === 'special' ? [1, 0] : [0, 1];
     for (i = 0; i < 2; i++) this.drawFighter(ctx, fs[order[i]], cam);
@@ -648,8 +730,13 @@
     this.drawBeam(ctx, cam);
     this.drawWhale(ctx, cam);
     this.drawFxLayer(ctx, cam, 'front');
+    this.amb.draw(ctx, cam, 'front', t);
     this.drawTexts(ctx, cam);
     ctx.restore();
+    if (this.flash) {
+      ctx.fillStyle = this.flash.col; ctx.globalAlpha = this.flash.a * (1 - this.flash.t / this.flash.dur);
+      ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+    }
     this.drawHUD(ctx);
     if (this.freeze) this.drawCutIn(ctx);
     this.drawAnnouncer(ctx);
@@ -661,7 +748,13 @@
     var mode = f.poseMode;
     if (f.state === 'dizzy' && (NC.frame & 8)) mode = mode || null;
     var fr = NC.Sprites.frame(f.ch, f.ci, f.pose, mode, phase);
+    // stage lighting on generated sprites: ambient tint + rim light on the side facing the light
+    if (fr.k && this.light && !mode) {
+      var ldir = this.light.dir || (f.x < SW / 2 ? 1 : -1);
+      fr = NC.FX.lit(fr, this.light, f.facing < 0 ? -ldir : ldir);
+    }
     var x = Math.round(f.x - cam), y = Math.round(GY + f.y);
+    if (this.hitstop > 0 && f === this.hitVictim) x += ((NC.frame >> 1) & 1 ? 1 : -1) * this.hitJit;
     ctx.save();
     ctx.globalAlpha = f.alpha;
     ctx.translate(x, y);
@@ -688,6 +781,23 @@
     if (f.state === 'special' && f.sp && f.sp.type === 'counter' && f.countering && (NC.frame & 4)) {
       ctx.strokeStyle = '#ffffff'; ctx.strokeRect(x - 16 * f.s, y - 82 * f.s, 32 * f.s, 82 * f.s);
     }
+  };
+
+  P.drawSuperRays = function (ctx, cam) {
+    var fz = this.freeze, f = fz.f, t = fz.t;
+    var cx = f.x - cam, cy = GY + f.y - 44 * f.s;
+    var col = f.ch.costumes[f.ci].pal.glow;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = Math.min(1, t / 6) * (t > fz.dur - 8 ? (fz.dur - t) / 8 : 1) * 0.5;
+    ctx.fillStyle = col;
+    for (var i = 0; i < 18; i++) {
+      var a = i / 18 * Math.PI * 2 + t * 0.02, w = 0.05 + (i % 3) * 0.02;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(a - w) * 320, cy + Math.sin(a - w) * 320);
+      ctx.lineTo(cx + Math.cos(a + w) * 320, cy + Math.sin(a + w) * 320);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
   };
 
   P.drawProjectiles = function (ctx, cam) {
@@ -864,6 +974,14 @@
           break;
         case 'spark':
           if (layer !== 'front') return;
+          var SPR = { hit: 'spark_hit', big: 'spark_big', counter: 'spark_counter', block: 'spark_block', ko: 'ko_burst', burst: 'spark_big' };
+          var id = SPR[f.kind], tl = f.t / f.life;
+          var pop = f.t < 3 ? 0.45 + f.t * 0.25 : 1.2 + tl * 0.25;
+          var sfxk = f.kind === 'ko' ? 1.15 : f.kind === 'burst' ? 1.5 : 1;
+          if (id && NC.FX.draw(ctx, id, x, y, { scale: pop * sfxk, rot: f.kind === 'block' ? 0 : f.rot, flip: f.kind === 'block' && f.facing > 0, alpha: tl < 0.55 ? 1 : 1 - (tl - 0.55) / 0.45 })) {
+            if (f.t < 2 && f.kind !== 'block') NC.FX.draw(ctx, id, x, y, { scale: pop * sfxk * 0.6, rot: -f.rot, alpha: 0.8 });
+            break;
+          }
           var col = f.kind === 'block' ? ['#80c0ff', '#ffffff'] : f.kind === 'counter' ? ['#ff8020', '#fff080'] : ['#ffffff', '#fff060'];
           var r = 4 + f.t * (f.kind === 'big' ? 2.2 : 1.5);
           ctx.globalCompositeOperation = 'lighter';
@@ -876,6 +994,17 @@
           }
           if (f.t < 4) { ctx.fillStyle = col[1]; ctx.beginPath(); ctx.arc(x, y, 6 - f.t, 0, 7); ctx.fill(); }
           ctx.globalCompositeOperation = 'source-over';
+          break;
+        case 'ring':
+          if (layer !== 'front') return;
+          ctx.save(); ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = 1 - life; ctx.strokeStyle = f.col; ctx.lineWidth = 3 * (1 - life) + 0.5;
+          ctx.beginPath(); ctx.ellipse(x, y, 6 + life * 70, 4 + life * 46, 0, 0, 7); ctx.stroke();
+          ctx.restore();
+          break;
+        case 'cloud':
+          if (layer !== 'front') return;
+          NC.FX.draw(ctx, 'dust', x, GY + 2, { scale: f.s * (0.6 + life * 0.6), alpha: 0.85 * (1 - life * life), flip: f.flip, anchorBottom: true });
           break;
         case 'dust':
           if (layer !== 'back') return;
@@ -938,7 +1067,7 @@
   P.drawTexts = function (ctx, cam) {
     this.texts.forEach(function (t) {
       if (t.t < 2) return;
-      var x = Math.round(t.x - cam), y = Math.round(GY + t.y);
+      var x = Math.round(t.x - cam), y = Math.max(40, Math.round(GY + t.y));
       var w = Font.measure(t.text) * (t.big ? 1 : 1);
       x = U.clamp(x, w / 2 + 2, W - w / 2 - 2);
       var col = t.big && (t.t & 4) ? '#ffffff' : t.color;
@@ -980,90 +1109,207 @@
   };
 
   // ------------------------------------------------------------------ HUD
+  // Ornate HUD: bevelled gold-framed life bars with portrait medallions, a jewelled timer and glassy
+  // COMPUTE gauges. Drawn with half-pixel detail thanks to the 2x frame buffer.
+  function barPath(ctx, x, y, w, h, left) {
+    var sl = 5;
+    ctx.beginPath();
+    if (left) { ctx.moveTo(x + sl, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); }
+    else { ctx.moveTo(x, y); ctx.lineTo(x + w - sl, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); }
+    ctx.closePath();
+  }
+  var GOLD = ['#fff4b8', '#f0c850', '#b07818', '#5a3408'];
+  function goldGrad(ctx, y, h) {
+    var g = ctx.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, GOLD[0]); g.addColorStop(0.35, GOLD[1]); g.addColorStop(0.7, GOLD[2]); g.addColorStop(1, GOLD[3]);
+    return g;
+  }
+  function medallion(ctx, f, x, y, sz, mirror, hurt) {
+    if (hurt) x += (NC.frame >> 1) & 1 ? 1 : -1;
+    ctx.fillStyle = '#10081a'; ctx.fillRect(x - 1.5, y - 1.5, sz + 3, sz + 3);
+    ctx.fillStyle = goldGrad(ctx, y - 1, sz + 2); ctx.fillRect(x - 1, y - 1, sz + 2, sz + 2);
+    ctx.fillStyle = '#10081a'; ctx.fillRect(x, y, sz, sz);
+    var p = NC.Sprites.portrait(f.ch, f.ci, 2, 48, 48);
+    var k = p.k || 1;
+    ctx.save();
+    if (mirror) { ctx.translate(x + sz, y); ctx.scale(-1, 1); ctx.drawImage(p, 9 * k, 3 * k, 30 * k, 30 * k, 0, 0, sz, sz); }
+    else ctx.drawImage(p, 9 * k, 3 * k, 30 * k, 30 * k, x, y, sz, sz);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(x, y, sz, 0.5);
+  }
+
   P.drawHUD = function (ctx) {
-    var fs = this.fighters;
+    var fs = this.fighters, t = NC.frame;
     for (var i = 0; i < 2; i++) {
       var f = fs[i];
       var left = i === 0;
-      var bx = left ? 8 : 140, bw = 108, by = 10;
-      // frame
-      ctx.fillStyle = '#10081a'; ctx.fillRect(bx - 2, by - 2, bw + 4, 12);
-      ctx.fillStyle = '#e8c850'; ctx.fillRect(bx - 1, by - 1, bw + 2, 10);
-      ctx.fillStyle = '#801818'; ctx.fillRect(bx, by, bw, 8);
-      var hw = Math.round(bw * f.hp / 1000), dw = Math.round(bw * f.dispHp / 1000);
-      ctx.fillStyle = '#ffffff';
-      if (left) ctx.fillRect(bx + bw - dw, by, dw, 8); else ctx.fillRect(bx, by, dw, 8);
-      var low = f.hp < 250 && (NC.frame & 16);
-      ctx.fillStyle = low ? '#ff8040' : '#f8e030';
-      if (left) ctx.fillRect(bx + bw - hw, by, hw, 8); else ctx.fillRect(bx, by, hw, 8);
-      ctx.fillStyle = low ? '#ffb070' : '#fff8a0';
-      if (left) ctx.fillRect(bx + bw - hw, by, hw, 2); else ctx.fillRect(bx, by, hw, 2);
-      // name
-      Font.draw(ctx, f.ch.short, left ? bx : bx + bw, by + 12, '#ffffff', { align: left ? 'left' : 'right', shadow: '#10081a' });
-      // round wins
-      for (var w = 0; w < f.wins; w++) {
-        var wx = left ? bx + bw - 8 - w * 9 : bx + w * 9;
-        Font.draw(ctx, 'V', wx, by + 12, '#ff4040', { shadow: '#10081a' });
+      var bw = 88, bh = 9, by = 8;
+      var bx = left ? 32 : W - 32 - bw;
+      var mx = left ? 4 : W - 28;
+      medallion(ctx, f, mx, 4, 24, !left, this.hitVictim === f && this.hitstop > 0 && !this.freeze);
+      // frame: dark outline, gold bevel, recessed trough
+      ctx.save();
+      ctx.translate(0, 0);
+      barPath(ctx, bx - 2, by - 2, bw + 4, bh + 4, left); ctx.fillStyle = '#10081a'; ctx.fill();
+      barPath(ctx, bx - 1.5, by - 1.5, bw + 3, bh + 3, left); ctx.fillStyle = goldGrad(ctx, by - 1.5, bh + 3); ctx.fill();
+      barPath(ctx, bx, by, bw, bh, left); ctx.fillStyle = '#2a0610'; ctx.fill();
+      ctx.clip();
+      var hw = bw * f.hp / 1000, dw = bw * f.dispHp / 1000;
+      // damage trail
+      var tg = ctx.createLinearGradient(0, by, 0, by + bh);
+      tg.addColorStop(0, '#ffd0c0'); tg.addColorStop(0.5, '#ff5838'); tg.addColorStop(1, '#a01810');
+      ctx.fillStyle = tg;
+      if (left) ctx.fillRect(bx + bw - dw, by, dw, bh); else ctx.fillRect(bx, by, dw, bh);
+      // health
+      var low = f.hp < 250, pulse = low ? 0.5 + 0.5 * Math.sin(t * 0.25) : 0;
+      var hg = ctx.createLinearGradient(0, by, 0, by + bh);
+      if (low) { hg.addColorStop(0, '#fff0c0'); hg.addColorStop(0.45, U.mix('#ff9030', '#ff3020', pulse)); hg.addColorStop(1, '#801008'); }
+      else { hg.addColorStop(0, '#fffbd0'); hg.addColorStop(0.3, '#fbe44a'); hg.addColorStop(0.75, '#f0a818'); hg.addColorStop(1, '#a05808'); }
+      ctx.fillStyle = hg;
+      var hx = left ? bx + bw - hw : bx;
+      ctx.fillRect(hx, by, hw, bh);
+      // specular stripe and a glint that sweeps across now and then
+      ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillRect(hx, by + 1, hw, 1);
+      var gp = ((t + i * 90) % 240) / 240;
+      if (gp < 0.35) {
+        var gx = left ? bx + bw - hw + hw * (gp / 0.35) : bx + hw * (1 - gp / 0.35);
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.beginPath(); ctx.moveTo(gx - 2, by); ctx.lineTo(gx + 3, by); ctx.lineTo(gx + 1, by + bh); ctx.lineTo(gx - 4, by + bh); ctx.fill();
+      }
+      // segment ticks every 10%
+      ctx.fillStyle = 'rgba(40,10,0,0.35)';
+      for (var tk = 1; tk < 10; tk++) ctx.fillRect(bx + bw * tk / 10, by + 2, 0.5, bh - 2);
+      ctx.restore();
+      // name plate
+      Font.draw(ctx, f.ch.short, left ? bx + 2 : bx + bw - 2, by + bh + 4, '#ffffff', { align: left ? 'left' : 'right', shadow: '#10081a' });
+      // round wins: gold medals beside the timer
+      for (var w = 0; w < Math.max(f.wins, this.roundsToWin < 9 ? this.roundsToWin : 0); w++) {
+        var wx = left ? bx + bw - 7 - w * 9 : bx + 1 + w * 9, wy = by + bh + 4;
+        ctx.fillStyle = '#10081a'; ctx.beginPath(); ctx.arc(wx + 3, wy + 3.5, 4, 0, 7); ctx.fill();
+        if (w < f.wins) {
+          ctx.fillStyle = goldGrad(ctx, wy, 7); ctx.beginPath(); ctx.arc(wx + 3, wy + 3.5, 3.5, 0, 7); ctx.fill();
+          ctx.fillStyle = '#c02020'; ctx.beginPath(); ctx.arc(wx + 3, wy + 3.5, 1.8, 0, 7); ctx.fill();
+          ctx.fillStyle = '#fff4b8'; ctx.fillRect(wx + 1.5, wy + 1.5, 1, 1);
+        } else { ctx.fillStyle = '#3a3050'; ctx.beginPath(); ctx.arc(wx + 3, wy + 3.5, 3, 0, 7); ctx.fill(); }
       }
       // Astra usage gauge
       if (f.ch.usageLimit) {
-        var ux = left ? bx : bx + bw - 40, uy = by + 22;
+        var ux = left ? bx : bx + bw - 40, uy = by + bh + 14;
         ctx.fillStyle = '#10081a'; ctx.fillRect(ux, uy, 40, 4);
         ctx.fillStyle = f.lockout > 0 ? '#ff4040' : '#fff6a0'; ctx.fillRect(ux + 1, uy + 1, Math.round(38 * f.usage / 100), 2);
       }
-      // meter
-      var mx = left ? 8 : 176, my = 208, mw = 72;
-      var full = f.meter >= NC.MAX_METER;
-      Font.draw(ctx, full && (NC.frame & 16) ? 'SUPER!' : 'COMPUTE', left ? mx : mx + mw, my - 10, full ? '#ffe040' : '#8ad0ff', { align: left ? 'left' : 'right', shadow: '#10081a' });
-      ctx.fillStyle = '#10081a'; ctx.fillRect(mx - 1, my - 1, mw + 2, 8);
+      // COMPUTE gauge: level number + three glassy cells
+      var gx0 = left ? 8 : W - 8 - 84, gy = 208, gw = 84;
+      var full = f.meter >= NC.MAX_METER, lv = Math.floor(f.meter / 100);
+      Font.draw(ctx, full && (t & 16) ? 'SUPER!' : 'COMPUTE', left ? gx0 + 14 : gx0 + gw - 14, gy - 10, full ? '#ffe040' : '#8ad0ff', { align: left ? 'left' : 'right', shadow: '#10081a' });
+      var lx = left ? gx0 : gx0 + gw - 11;
+      ctx.fillStyle = '#10081a'; ctx.fillRect(lx - 1, gy - 11, 13, 19);
+      ctx.fillStyle = goldGrad(ctx, gy - 10, 17); ctx.fillRect(lx - 0.5, gy - 10.5, 12, 18);
+      ctx.fillStyle = '#10081a'; ctx.fillRect(lx + 0.5, gy - 9.5, 10, 16);
+      Font.drawGradient(ctx, String(lv), lx + 1.5, gy - 5, '#ffffff', lv ? '#40c8ff' : '#404060', {});
+      var cx0 = left ? gx0 + 14 : gx0, cw = gw - 14;
+      ctx.fillStyle = '#10081a'; ctx.fillRect(cx0 - 1, gy - 1, cw + 2, 8);
       for (var sg = 0; sg < 3; sg++) {
-        var sx = mx + sg * 24;
-        ctx.fillStyle = '#202040'; ctx.fillRect(sx, my, 23, 6);
+        var sx = cx0 + sg * (cw / 3), sw = cw / 3 - 1;
+        ctx.fillStyle = '#141432'; ctx.fillRect(sx, gy, sw, 6);
         var fill = U.clamp(f.meter - sg * 100, 0, 100) / 100;
         if (fill > 0) {
-          ctx.fillStyle = fill >= 1 ? ((NC.frame >> 2) & 1 && f.meter >= 300 ? '#ffffff' : '#40c8ff') : '#2878c8';
-          ctx.fillRect(sx, my, Math.round(23 * fill), 6);
+          var mg = ctx.createLinearGradient(0, gy, 0, gy + 6);
+          if (fill >= 1) { mg.addColorStop(0, '#e8fbff'); mg.addColorStop(0.4, full && (t >> 2) & 1 ? '#ffffff' : '#40c8ff'); mg.addColorStop(1, '#1050a0'); }
+          else { mg.addColorStop(0, '#a0d8ff'); mg.addColorStop(0.5, '#2878c8'); mg.addColorStop(1, '#0c3070'); }
+          ctx.fillStyle = mg;
+          if (left) ctx.fillRect(sx, gy, sw * fill, 6); else ctx.fillRect(sx + sw * (1 - fill), gy, sw * fill, 6);
+          ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(left ? sx : sx + sw * (1 - fill), gy + 0.5, sw * fill, 0.5);
         }
       }
+      if (full) {
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.25 + 0.2 * Math.sin(t * 0.3);
+        ctx.fillStyle = '#40c8ff'; ctx.fillRect(cx0 - 2, gy - 2, cw + 4, 10); ctx.restore();
+      }
     }
-    // timer
+    // timer: jewelled gold plate
     var tt = this.mode === 'training' || NC.settings.timer >= 100 ? '--' : String(Math.max(0, this.timer)).padStart(2, '0');
-    var tc = this.timer <= 10 && (NC.frame & 16) ? '#ff4040' : '#ffffff';
-    ctx.fillStyle = '#10081a'; ctx.fillRect(W / 2 - 13, 6, 26, 20);
-    Font.draw(ctx, tt, W / 2, 9, tc, { align: 'center', scale: 2 });
+    var tc = this.timer <= 10 && (t & 16) ? '#ff4040' : '#ffffff';
+    ctx.fillStyle = '#10081a'; ctx.fillRect(W / 2 - 15, 3, 30, 25);
+    ctx.fillStyle = goldGrad(ctx, 3.5, 24); ctx.fillRect(W / 2 - 14.5, 3.5, 29, 24);
+    var tg2 = ctx.createLinearGradient(0, 5, 0, 26); tg2.addColorStop(0, '#2a1840'); tg2.addColorStop(1, '#0a0418');
+    ctx.fillStyle = tg2; ctx.fillRect(W / 2 - 13, 5, 26, 21);
+    Font.drawGradient(ctx, tt, W / 2, 8, tc, this.timer <= 10 ? '#ff8080' : '#a0c8ff', { align: 'center', scale: 2 });
     // combo counter
     var cs = this.comboShow;
     if (cs && cs.n >= 2) {
       var cx = cs.side === 0 ? 10 : W - 10;
       var slideIn = Math.min(1, cs.t / 6);
       cx += (cs.side === 0 ? -1 : 1) * (1 - slideIn) * 60;
-      Font.drawGradient(ctx, cs.n + ' HITS', cx, 56, '#ffffff', '#ff8030', { align: cs.side === 0 ? 'left' : 'right', outline: '#10081a' });
-      if (cs.n >= 4) Font.draw(ctx, cs.n >= 7 ? 'CONTEXT OVERFLOW!' : 'CHAIN OF THOUGHT!', cx, 68, '#ffe040', { align: cs.side === 0 ? 'left' : 'right', outline: '#10081a' });
+      var big = cs.n >= 3 && cs.t < 8 ? 1 : 0;
+      Font.drawGradient(ctx, String(cs.n), cx, 50 - big, '#ffffff', '#ff8030', { align: cs.side === 0 ? 'left' : 'right', outline: '#10081a', scale: 2 });
+      var nw = Font.measure ? Font.measure(String(cs.n)) * 2 : String(cs.n).length * 16;
+      Font.drawGradient(ctx, 'HITS', cs.side === 0 ? cx + nw + 3 : cx - nw - 3, 58, '#fff8c0', '#ffb030', { align: cs.side === 0 ? 'left' : 'right', outline: '#10081a' });
+      if (cs.n >= 4) Font.draw(ctx, cs.n >= 7 ? 'CONTEXT OVERFLOW!' : 'CHAIN OF THOUGHT!', cx, 70, '#ffe040', { align: cs.side === 0 ? 'left' : 'right', outline: '#10081a' });
     }
     if (NC.settings.showInputs && this.mode === 'training') this.drawInputs(ctx);
   };
 
+  // Super cut-in: a slanted band in the fighter's colors slams across the screen with speed
+  // lines, the hi-res portrait slides in with overshoot, and the super's name stamps in.
   P.drawCutIn = function (ctx) {
     var fz = this.freeze, f = fz.f;
     var t = fz.t;
-    var slide = Math.min(1, t / 8), out = t > fz.dur - 8 ? (fz.dur - t) / 8 : 1;
-    var y = 70, h = 64;
-    ctx.fillStyle = 'rgba(0,0,0,0.65)';
-    ctx.fillRect(0, y, W, Math.round(h * out));
+    var ease = function (x) { x = U.clamp(x, 0, 1); return 1 - Math.pow(1 - x, 3); };
+    var open = ease(t / 6), close = t > fz.dur - 7 ? U.clamp((fz.dur - t) / 7, 0, 1) : 1;
+    var hgt = 74 * open * close, cy = 92;
+    if (hgt < 1) return;
+    var left = f.side === 0;
     var pal = f.ch.costumes[f.ci].pal;
-    U.bandGradient(ctx, 0, y + 2, W, Math.round((h - 4) * out), [[0, pal.outfit], [1, U.darken(pal.outfit, 0.6)]], 8);
-    // speed lines
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    for (var i = 0; i < 10; i++) ctx.fillRect(((i * 53 + t * 14) % (W + 60)) - 60, y + 6 + i * 6, 40, 1);
-    var p = NC.Sprites.portrait(f.ch, f.ci, 3, 96, 112);
-    var px = f.side === 0 ? -100 + slide * 110 : W + 4 - slide * 110;
-    ctx.save(); ctx.beginPath(); ctx.rect(0, y + 2, W, (h - 4) * out); ctx.clip();
-    if (f.side === 1) { ctx.translate(px + 96, y - 20); ctx.scale(-1, 1); U.blit(ctx, p, 0, 0); }
-    else U.blit(ctx, p, px, y - 20);
+    var skew = 14;
+    function band(pad) {
+      ctx.beginPath();
+      ctx.moveTo(-8, cy - hgt / 2 - pad + (left ? skew : -skew)); ctx.lineTo(W + 8, cy - hgt / 2 - pad + (left ? -skew : skew));
+      ctx.lineTo(W + 8, cy + hgt / 2 + pad + (left ? -skew : skew)); ctx.lineTo(-8, cy + hgt / 2 + pad + (left ? skew : -skew));
+      ctx.closePath();
+    }
+    // outer glow edge + white rim
+    band(3); ctx.fillStyle = pal.glow; ctx.fill();
+    band(1.5); ctx.fillStyle = '#ffffff'; ctx.fill();
+    band(0);
+    var g = ctx.createLinearGradient(0, cy - hgt / 2, 0, cy + hgt / 2);
+    g.addColorStop(0, U.lighten(pal.outfit, 0.25)); g.addColorStop(0.5, pal.outfit); g.addColorStop(1, U.darken(pal.outfit, 0.7));
+    ctx.fillStyle = g; ctx.fill();
+    ctx.save(); band(0); ctx.clip();
+    // speed lines streaming away from the portrait
+    ctx.globalCompositeOperation = 'lighter';
+    for (var i = 0; i < 22; i++) {
+      var ly = cy - 44 + ((i * 37) % 88), len = 30 + (i * 13) % 50;
+      var lx = ((i * 71 + t * (18 + i % 5 * 4)) % (W + 120)) - 60;
+      if (!left) lx = W - lx;
+      ctx.globalAlpha = 0.18 + (i % 3) * 0.08;
+      ctx.fillStyle = i % 4 ? '#ffffff' : pal.glow;
+      ctx.fillRect(left ? lx : lx - len, ly, len, i % 3 ? 0.5 : 1);
+    }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    // portrait with overshoot slide
+    var p = NC.Sprites.portrait(f.ch, f.ci, 4, 124, 150);
+    var sl = t < 10 ? ease(t / 10) * 1.08 : 1.08 - Math.min(0.08, (t - 10) * 0.02);
+    var px = left ? -130 + sl * 132 : W + 6 - sl * 132;
+    if (left) U.blit(ctx, p, px, cy - 64);
+    else { ctx.save(); ctx.translate(px + 124, cy - 64); ctx.scale(-1, 1); U.blit(ctx, p, 0, 0); ctx.restore(); }
+    // soft light sweep over the band
+    var sw = ((t * 9) % (W + 160)) - 80;
+    var lg = ctx.createLinearGradient(sw - 30, 0, sw + 30, 0);
+    lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.5, 'rgba(255,255,255,0.22)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = lg; ctx.fillRect(sw - 30, 0, 60, H);
     ctx.restore();
-    var tx = f.side === 0 ? W - 8 : 8;
-    Font.drawGradient(ctx, f.super.name.length > 22 ? f.super.name.split(',')[0] : f.super.name, tx, y + 24, '#ffffff', pal.glow, { align: f.side === 0 ? 'right' : 'left', outline: '#10081a' });
-    Font.draw(ctx, 'SUPER', tx, y + 38, '#ffe040', { align: f.side === 0 ? 'right' : 'left', shadow: '#10081a' });
+    // text stamps in from the far side
+    var st = ease((t - 4) / 6);
+    if (t > 4) {
+      var tx = left ? W - 10 : 10, al = left ? 'right' : 'left';
+      var name = f.super.name.length > 22 ? f.super.name.split(',')[0] : f.super.name;
+      var off = (1 - st) * 40 * (left ? 1 : -1);
+      Font.drawGradient(ctx, 'SUPER', tx + off, cy - 26, '#fff8c0', '#ffb020', { align: al, outline: '#10081a', scale: 2 });
+      Font.drawGradient(ctx, name, tx - off, cy - 4, '#ffffff', pal.glow, { align: al, outline: '#10081a' });
+      Font.draw(ctx, f.ch.name || f.ch.short, tx - off * 0.5, cy + 10, '#10081a', { align: al });
+      Font.draw(ctx, f.ch.name || f.ch.short, tx - off * 0.5 - 1, cy + 9, '#ffffff', { align: al });
+    }
   };
 
   P.drawAnnouncer = function (ctx) {

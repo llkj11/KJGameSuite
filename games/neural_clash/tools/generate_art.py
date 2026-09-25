@@ -7,6 +7,7 @@ SNES-style game assets:
              chroma-keyed, scaled, reduced to a 31-color palette (15 at --res 1) with an outline, and
              packed into one atlas per costume (costumes are SNES-style palette swaps)
   portraits  per fighter: a bust portrait (recolored per costume the same way)
+  fx         hit sparks, KO burst, power-up aura and dust clouds for the fight engine
 
 Raw downloads are kept in assets/art/raw/ (gitignored); processed files go to
 assets/art/ and are registered under "art" in assets/manifest.json.
@@ -545,6 +546,59 @@ PLAN_HOW = """Every job as {kind, id, prompt, reference, save_to, aspect}. Paths
     python3 tools/generate_art.py fetch"""
 
 
+def fx_prompt(P, fid):
+    spec = P['fx'][fid]
+    bg = (', centered, on a pure solid black (#000000) background, no text, no character, nothing else' if spec['bg'] == 'black'
+          else ', on a plain flat solid magenta (#FF00FF) background, no floor, no shadow, no text, nothing else')
+    return P['fx_style'] + spec['desc'] + bg
+
+
+def to_fx(raw_path, spec):
+    """Black-background effects become RGB images drawn additively in game (black adds nothing);
+    magenta-background ones are chroma-keyed to RGBA."""
+    tw, th = spec['size'][0] * RES, spec['size'][1] * RES
+    if spec['bg'] == 'black':
+        img = Image.open(raw_path).convert('RGB')
+        a = np.asarray(img).astype(np.int32)
+        lum = a.max(-1)
+        ys, xs = np.nonzero(lum > 40)
+        img = img.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+        img.thumbnail((tw, th), Image.Resampling.LANCZOS)
+        a = np.asarray(img).astype(np.int32)
+        a[a.max(-1) < 28] = 0          # crush the near-black haze so additive blending leaves no box
+        img = Image.fromarray(a.astype(np.uint8), 'RGB')
+        return img.quantize(colors=64, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGB')
+    img = chroma_key(Image.open(raw_path))
+    bb = largest_blob_bbox(np.asarray(img)[..., 3])
+    img = img.crop(bb)
+    img = img.convert('RGBa')
+    img.thumbnail((tw, th), Image.Resampling.LANCZOS)
+    a = np.asarray(img.convert('RGBA')).copy()
+    a[..., 3] = np.where(a[..., 3] > 110, 255, 0)
+    return quantize_rgba(Image.fromarray(a, 'RGBA'), 24)
+
+
+def run_fx(P, opt, man):
+    art = man.setdefault('art', {}).setdefault('fx', {})
+    jobs = {}
+    for fid, spec in P.get('fx', {}).items():
+        if opt.only and fid not in opt.only:
+            continue
+        raw = os.path.join(RAW, 'fx', fid + '.png')
+        if not opt.process_only and (opt.force or not os.path.exists(raw)):
+            jobs[fid] = (generate, (fx_prompt(P, fid), raw, 'fx ' + fid, spec['aspect']))
+    run_parallel(jobs, opt.workers)
+    for fid, spec in P.get('fx', {}).items():
+        raw = os.path.join(RAW, 'fx', fid + '.png')
+        if (opt.only and fid not in opt.only) or not os.path.exists(raw):
+            continue
+        out = os.path.join(ART, 'fx', fid + '.png')
+        save_png(to_fx(raw, spec), out)
+        art[fid] = {'url': 'art/fx/' + fid + '.png', 'add': spec['bg'] == 'black'}
+        print('fx', fid, '->', out)
+    write_manifest(man)
+
+
 def plan_jobs(P, opt):
     rel = lambda p: os.path.relpath(p, ROOT)
     jobs = []
@@ -570,6 +624,11 @@ def plan_jobs(P, opt):
                      'prompt': (f"Using this character as the reference: bust portrait (head and shoulders) of {desc} facing right in "
                                 "three-quarter view, confident fighting-game character-select expression, SNES fighting game portrait style "
                                 f"like Street Fighter Alpha, crisp pixel art, {P['portrait_bg']}.")})
+    for fid, spec in P.get('fx', {}).items():
+        if opt.only and fid not in opt.only:
+            continue
+        jobs.append({'kind': 'generate', 'id': 'fx:' + fid, 'aspect': spec['aspect'],
+                     'save_to': rel(os.path.join(RAW, 'fx', fid + '.png')), 'prompt': fx_prompt(P, fid)})
     return jobs
 
 
@@ -609,7 +668,7 @@ def fetch_results(P, opt):
 def main():
     global RES
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('what', nargs='?', default='all', choices=['all', 'stages', 'sprites', 'portraits', 'fetch'])
+    ap.add_argument('what', nargs='?', default='all', choices=['all', 'stages', 'sprites', 'portraits', 'fx', 'fetch'])
     ap.add_argument('--only', type=lambda s: s.split(','))
     ap.add_argument('--poses', type=lambda s: s.split(','))
     ap.add_argument('--force', action='store_true')
@@ -638,6 +697,8 @@ def main():
         run_sprites(P, opt, man, roster)
     if opt.what in ('all', 'portraits'):
         run_portraits(P, opt, man, roster)
+    if opt.what in ('all', 'fx'):
+        run_fx(P, opt, man)
     print('Done. Reload the game to see the new art.')
 
 

@@ -2380,6 +2380,55 @@
       "reference": "assets/art/raw/sprites/mythos/_reference.png",
       "save_to": "assets/art/raw/portraits/mythos.png",
       "prompt": "Using this character as the reference: bust portrait (head and shoulders) of MYTHOS 5.1: an ominous, unleashed dark twin of a scholar-knight. Wild spiky gold hair, pale lavender-grey skin, glowing gold eyes. Wears a long dark violet (#2A1040) robe split at the legs, near-black trousers and boots, a glowing gold eight-point asterisk sigil on the chest, and a black book chained to the hip with broken chains. No harness. facing right in three-quarter view, confident fighting-game character-select expression, SNES fighting game portrait style like Street Fighter Alpha, crisp pixel art, plain flat dark navy background."
+    },
+    {
+      "kind": "generate",
+      "id": "fx:spark_hit",
+      "aspect": "1:1",
+      "save_to": "assets/art/raw/fx/spark_hit.png",
+      "prompt": "16-bit Super Nintendo fighting game visual effect sprite, crisp pixel art, mid-90s Capcom style: a single bright hit impact spark, white-hot core with jagged yellow and white spiky starburst rays shooting outward, a few small flying shards, centered, on a pure solid black (#000000) background, no text, no character, nothing else"
+    },
+    {
+      "kind": "generate",
+      "id": "fx:spark_big",
+      "aspect": "1:1",
+      "save_to": "assets/art/raw/fx/spark_big.png",
+      "prompt": "16-bit Super Nintendo fighting game visual effect sprite, crisp pixel art, mid-90s Capcom style: a huge heavy-hit impact explosion burst, white-hot center, fiery orange and yellow radiating flame shards and a broken shockwave ring, dramatic and violent, centered, on a pure solid black (#000000) background, no text, no character, nothing else"
+    },
+    {
+      "kind": "generate",
+      "id": "fx:spark_counter",
+      "aspect": "1:1",
+      "save_to": "assets/art/raw/fx/spark_counter.png",
+      "prompt": "16-bit Super Nintendo fighting game visual effect sprite, crisp pixel art, mid-90s Capcom style: a counter-hit impact spark, crimson red and hot orange jagged starburst with a white core and a thin expanding shockwave ring, centered, on a pure solid black (#000000) background, no text, no character, nothing else"
+    },
+    {
+      "kind": "generate",
+      "id": "fx:spark_block",
+      "aspect": "1:1",
+      "save_to": "assets/art/raw/fx/spark_block.png",
+      "prompt": "16-bit Super Nintendo fighting game visual effect sprite, crisp pixel art, mid-90s Capcom style: a guard block flash, electric cyan and blue crescent-shaped arc of light like a deflected blow on an invisible shield, small blue sparks, white core, centered, on a pure solid black (#000000) background, no text, no character, nothing else"
+    },
+    {
+      "kind": "generate",
+      "id": "fx:ko_burst",
+      "aspect": "1:1",
+      "save_to": "assets/art/raw/fx/ko_burst.png",
+      "prompt": "16-bit Super Nintendo fighting game visual effect sprite, crisp pixel art, mid-90s Capcom style: a gigantic final knockout explosion, blinding white center, golden and orange radial light rays, a massive expanding shockwave ring and flying debris sparks, epic, centered, on a pure solid black (#000000) background, no text, no character, nothing else"
+    },
+    {
+      "kind": "generate",
+      "id": "fx:aura",
+      "aspect": "3:4",
+      "save_to": "assets/art/raw/fx/aura.png",
+      "prompt": "16-bit Super Nintendo fighting game visual effect sprite, crisp pixel art, mid-90s Capcom style: a tall roaring energy aura of white flames rising upward, like a fighter powering up, flickering tongues of pure white and pale grey fire forming a column, hollow in the middle where a character would stand, centered, on a pure solid black (#000000) background, no text, no character, nothing else"
+    },
+    {
+      "kind": "generate",
+      "id": "fx:dust",
+      "aspect": "16:9",
+      "save_to": "assets/art/raw/fx/dust.png",
+      "prompt": "16-bit Super Nintendo fighting game visual effect sprite, crisp pixel art, mid-90s Capcom style: a wide billowing cloud of kicked-up dust and grit, tan and light grey puffy dust clouds with darker shading, low and wide like dust from a body slamming the floor, on a plain flat solid magenta (#FF00FF) background, no floor, no shadow, no text, nothing else"
     }
   ]
 }

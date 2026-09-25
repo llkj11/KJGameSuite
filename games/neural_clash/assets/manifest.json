@@ -2868,6 +2868,36 @@
         "art/portraits/mythos_3.png"
       ]
     },
-    "res": 2
+    "res": 2,
+    "fx": {
+      "spark_hit": {
+        "url": "art/fx/spark_hit.png",
+        "add": true
+      },
+      "spark_big": {
+        "url": "art/fx/spark_big.png",
+        "add": true
+      },
+      "spark_counter": {
+        "url": "art/fx/spark_counter.png",
+        "add": true
+      },
+      "spark_block": {
+        "url": "art/fx/spark_block.png",
+        "add": true
+      },
+      "ko_burst": {
+        "url": "art/fx/ko_burst.png",
+        "add": true
+      },
+      "aura": {
+        "url": "art/fx/aura.png",
+        "add": true
+      },
+      "dust": {
+        "url": "art/fx/dust.png",
+        "add": false
+      }
+    }
   }
 }

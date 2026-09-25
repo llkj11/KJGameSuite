@@ -56,6 +56,7 @@
         for (k in M.stages || {}) load(M.stages[k]);
         for (k in M.portraits || {}) M.portraits[k].forEach(function (u) { load(u); });
         for (k in M.sprites || {}) M.sprites[k].atlases.forEach(function (u) { load(u); });
+        for (k in M.fx || {}) load(M.fx[k].url);
       }).catch(function () { /* no manifest: procedural art */ });
   }
 
@@ -79,6 +80,13 @@
   NC.Art = {
     init: init,
     has: function (kind, id) { return !!(M && M[kind] && M[kind][id]); },
+
+    // Generated effect sprite {im, add, k} (add: draw with additive blending), or null.
+    fx: function (id) {
+      var e = M && M.fx && M.fx[id];
+      var im = e && ready(e.url);
+      return im ? { im: im, add: e.add, k: K } : null;
+    },
 
     // {c, ox, oy} for a fighter pose, or null to use the procedural sprite.
     spriteFrame: function (id, ci, pose, mode) {
