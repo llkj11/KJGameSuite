@@ -80,8 +80,9 @@ Prompts and voice choices are in `tools/prompts.json`.
 
 `tools/generate_art.py` produces SNES-style art through Kenspire (imagegen.llkj.dev). It has three parts:
 
-- **Stages:** one 448x224 pixel-art backdrop per stage. In game it is line-scrolled per scanline: the sky moves slowest and the floor tracks the camera.
-- **Sprites:** per fighter, a reference image, then one reference-guided edit for each of 31 poses. Each pose is chroma-keyed, scaled, reduced to a 15-color SNES palette and outlined. Poses are packed into one atlas per costume. Costumes are SNES-style palette swaps of the default colors.
+- **Resolution:** generated art is processed at 2x (`--res 2`, the default). The game draws into a 512x448 buffer through a 2x transform: the HUD, font and procedural art keep their SNES chunkiness, while sprites, portraits and backdrops keep twice the detail. `--res 1` rebuilds pure-SNES-resolution art.
+- **Stages:** one 896x448 pixel-art backdrop per stage (2x of the 448x224 stage). In game it is line-scrolled per row: the sky moves slowest and the floor tracks the camera.
+- **Sprites:** per fighter, a reference image, then one reference-guided edit for each of 31 poses. Each pose is chroma-keyed, scaled, reduced to a 31-color palette (15 at `--res 1`) and outlined. Poses are packed into one atlas per costume. Costumes are SNES-style palette swaps of the default colors.
 - **Portraits:** a bust per fighter, recolored per costume in the same way.
 
 ```bash

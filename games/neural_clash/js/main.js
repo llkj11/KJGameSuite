@@ -4,8 +4,12 @@
   var W = NC.W, H = NC.H;
   var screen = document.getElementById('screen');
   var sctx = screen.getContext('2d');
-  var buf = NC.U.makeCanvas(W, H);
+  // The frame buffer is NC.RES times the SNES resolution. Everything draws in 256x224 game
+  // coordinates through a scale transform, so procedural art stays chunky while the generated
+  // sprites, portraits and backdrops keep their extra detail.
+  var buf = NC.U.makeCanvas(W * NC.RES, H * NC.RES);
   var ctx = NC.ctx = buf.getContext('2d');
+  ctx.setTransform(NC.RES, 0, 0, NC.RES, 0, 0);
   var small = NC.U.makeCanvas(W, H), smallCtx = small.getContext('2d');
   var scale = 1, outW = W, outH = H;
 
@@ -30,13 +34,13 @@
       var sw = Math.ceil(W / m), sh = Math.ceil(H / m);
       smallCtx.imageSmoothingEnabled = false;
       smallCtx.clearRect(0, 0, W, H);
-      smallCtx.drawImage(buf, 0, 0, W, H, 0, 0, sw, sh);
+      smallCtx.drawImage(buf, 0, 0, buf.width, buf.height, 0, 0, sw, sh);
       sctx.drawImage(small, 0, 0, sw, sh, 0, 0, outW, outH);
       var f = NC.Scenes.fade();
       sctx.fillStyle = 'rgba(0,0,0,' + (f * 0.85) + ')';
       sctx.fillRect(0, 0, outW, outH);
     } else {
-      sctx.drawImage(buf, 0, 0, outW, outH);
+      sctx.drawImage(buf, 0, 0, buf.width, buf.height, 0, 0, outW, outH);
     }
     if (NC.settings.crt && scale >= 2) {
       sctx.fillStyle = 'rgba(0,0,0,0.28)';

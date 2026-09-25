@@ -28,6 +28,7 @@
     dizzy: 'hit', lose: 'crouch', fall: 'hit', lying: 'fall', cast: 'straight', block: 'idle', crouch: 'idle', jump: 'crouch', hit: 'idle', win: 'idle' };
 
   var M = null;              // manifest.art
+  var K = 1;                 // art pixels per game pixel (manifest.art.res)
   var imgs = {};             // url -> HTMLImageElement (loaded) | 'loading' | 'failed'
   var frameCache = {};
   var tintCache = {};
@@ -50,6 +51,7 @@
       .then(function (m) {
         M = (m && m.art) || null;
         if (!M) return;
+        K = M.res || 1;
         var k;
         for (k in M.stages || {}) load(M.stages[k]);
         for (k in M.portraits || {}) M.portraits[k].forEach(function (u) { load(u); });
@@ -90,12 +92,13 @@
       if (!f) return null;
       var ck = id + '|' + ci + '|' + key + '|' + (mode || '') + '|' + (pose === 'idle1' || pose === 'idle2' ? pose : '');
       if (frameCache[ck]) return frameCache[ck];
-      var c = U.makeCanvas(f[2], f[3] + 2), x = c.getContext('2d');
-      // idle breathing: squash the top by a pixel on alternate frames
-      var bob = pose === 'idle1' ? 1 : pose === 'idle2' ? 2 : 0;
-      x.drawImage(atlas, f[0], f[1], f[2], f[3], 0, 2 + bob, f[2], f[3] - bob);
+      var c = U.makeCanvas(f[2], f[3] + 2 * K), x = c.getContext('2d');
+      // idle breathing: squash the top by a game pixel on alternate frames
+      var bob = (pose === 'idle1' ? 1 : pose === 'idle2' ? 2 : 0) * K;
+      x.drawImage(atlas, f[0], f[1], f[2], f[3], 0, 2 * K + bob, f[2], f[3] - bob);
       if (mode) c = tint(c, mode);
-      return (frameCache[ck] = { c: c, ox: f[4], oy: f[5] + 2 });
+      c.k = K;
+      return (frameCache[ck] = { c: c, ox: f[4] / K, oy: f[5] / K + 2, k: K });
     },
 
     // Portrait canvas (w x h) cropped from the generated bust, or null.
@@ -106,13 +109,14 @@
       if (!im) return null;
       var ck = id + '|' + ci + '|' + w + 'x' + h + '|' + (mode || '');
       if (tintCache[ck]) return tintCache[ck];
-      var c = U.makeCanvas(w, h), x = c.getContext('2d');
-      var s = Math.max(w / im.width, h / im.height);
+      var c = U.makeCanvas(w * K, h * K), x = c.getContext('2d');
+      var s = Math.max(w * K / im.width, h * K / im.height);
       x.imageSmoothingEnabled = s < 1;
       x.imageSmoothingQuality = 'high';
       var dw = im.width * s, dh = im.height * s;
-      x.drawImage(im, Math.round((w - dw) / 2), 0, Math.round(dw), Math.round(dh));
+      x.drawImage(im, Math.round((w * K - dw) / 2), 0, Math.round(dw), Math.round(dh));
       if (mode) c = tint(c, mode);
+      c.k = K;
       return (tintCache[ck] = c);
     },
 
@@ -122,11 +126,13 @@
       var url = M && M.stages && M.stages[id];
       var im = url && ready(url);
       if (!im) return false;
-      var top = NC.Stages.FLOOR_TOP, H = NC.H, span = im.width - NC.W;
-      for (var y = 0; y < H; y++) {
+      // one pass per backdrop row: at 2x art that is two rows per game scanline
+      var top = NC.Stages.FLOOR_TOP, H = NC.H, span = im.width / K - NC.W;
+      for (var r = 0; r < H * K; r++) {
+        var y = r / K;
         var f = y < top ? 0.55 + 0.15 * (y / top) : 0.7 + 0.3 * ((y - top) / (H - top));
         var sx = cam * f + span * (1 - f) / 2;
-        ctx.drawImage(im, Math.round(sx), y, NC.W, 1, 0, y, NC.W, 1);
+        ctx.drawImage(im, Math.round(sx * K), r, NC.W * K, 1, 0, y, NC.W, 1 / K);
       }
       return true;
     }

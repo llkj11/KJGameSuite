@@ -416,8 +416,8 @@
             if (pl.flash > 0) pl.flash--;
             var por = NC.Sprites.portrait(ch, pl.ci, 3, 96, 112, mode);
             ctx.save();
-            if (i === 1) { ctx.translate(x + 96, y - 6); ctx.scale(-1, 1); ctx.drawImage(por, 0, 0); }
-            else ctx.drawImage(por, x, y - 6);
+            if (i === 1) { ctx.translate(x + 96, y - 6); ctx.scale(-1, 1); U.blit(ctx, por, 0, 0); }
+            else U.blit(ctx, por, x, y - 6);
             ctx.restore();
           }
           // name plate
@@ -447,7 +447,7 @@
             var px = i === 0 ? 112 : 144;
             ctx.translate(px, 118);
             if (i === 1) ctx.scale(-1, 1);
-            ctx.drawImage(fr.c, -fr.ox, -fr.oy);
+            NC.Sprites.blit(ctx, fr, 0, 0);
             ctx.restore();
           }
         });
@@ -476,7 +476,8 @@
             var ch = NC.CHAR[id];
             U.bandGradient(ctx, gxp, gyp, 40, 27, [[0, U.darken(ch.costumes[0].pal.outfit, 0.3)], [1, U.darken(ch.costumes[0].pal.outfit, 0.75)]], 4);
             var sm = NC.Sprites.portrait(ch, 0, 2, 48, 48);
-            ctx.drawImage(sm, 4, 3, 40, 27, gxp, gyp, 40, 27);
+            var smk = sm.k || 1;
+            ctx.drawImage(sm, 4 * smk, 3 * smk, 40 * smk, 27 * smk, gxp, gyp, 40, 27);
             if (id === 'mythos') Font.draw(ctx, 'BOSS', gxp + 20, gyp + 19, '#ffcc30', { align: 'center', outline: '#000' });
           }
         }
@@ -578,8 +579,8 @@
         for (var i = 0; i < 12; i++) ctx.fillRect(((i * 37 + t * 8) % (W + 40)) - 40, i * 18, 30, 1);
         var slide = Math.min(1, t / 16);
         var pa = NC.Sprites.portrait(a, o.p1.ci, 4, 124, 150), pb = NC.Sprites.portrait(b, o.p2.ci, 4, 124, 150);
-        ctx.drawImage(pa, Math.round(-130 + slide * 130), 40);
-        ctx.save(); ctx.translate(Math.round(W + 130 - slide * 130), 40); ctx.scale(-1, 1); ctx.drawImage(pb, 0, 0); ctx.restore();
+        U.blit(ctx, pa, Math.round(-130 + slide * 130), 40);
+        ctx.save(); ctx.translate(Math.round(W + 130 - slide * 130), 40); ctx.scale(-1, 1); U.blit(ctx, pb, 0, 0); ctx.restore();
         // lightning
         if (t > 16 && t < 30 && (t & 2)) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(0, 0, W, H); }
         if (t > 20) {
@@ -655,9 +656,9 @@
         var t = this.t;
         U.bandGradient(ctx, 0, 0, W, H, [[0, '#000010'], [1, U.darken(w.costumes[wp.ci].pal.outfit, 0.5)]], 14);
         var por = NC.Sprites.portrait(w, wp.ci, 4, 128, 146);
-        ctx.drawImage(por, 6, 12);
+        U.blit(ctx, por, 6, 12);
         var lpor = NC.Sprites.portrait(l, lp.ci, 3, 72, 80, 'dark');
-        ctx.save(); ctx.translate(W - 10, 22); ctx.scale(-1, 1); ctx.drawImage(lpor, 0, 0); ctx.restore();
+        ctx.save(); ctx.translate(W - 10, 22); ctx.scale(-1, 1); U.blit(ctx, lpor, 0, 0); ctx.restore();
         Font.drawGradient(ctx, r.winner < 0 ? 'DRAW GAME' : 'YOU WIN!', W - 16, 118, '#ffffff', '#ffe040', { align: 'right', scale: 2, outline: '#10081a' });
         if (o.arcade && winnerSide === 1) Font.drawGradient(ctx, 'YOU LOSE', W - 16, 118, '#ffffff', '#ff4040', { align: 'right', scale: 2, outline: '#10081a' });
         textBox(ctx, 8, 158, W - 16, 52);
@@ -684,7 +685,7 @@
         ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
         var ch = NC.CHAR[S.picks[0].id];
         var fr = NC.Sprites.frame(ch, S.picks[0].ci, 'lying');
-        ctx.drawImage(fr.c, W / 2 - fr.ox, 150 - fr.oy);
+        NC.Sprites.blit(ctx, fr, W / 2, 150);
         Font.drawGradient(ctx, 'CONTINUE?', W / 2, 50, '#ffffff', '#40c8ff', { align: 'center', scale: 2, outline: '#10081a' });
         Font.drawGradient(ctx, String(Math.max(0, this.n)), W / 2, 80, '#ffffff', '#ff4040', { align: 'center', scale: 4, outline: '#10081a' });
         Font.draw(ctx, 'CONTEXT WINDOW EXHAUSTED', W / 2, 180, '#8a8ab0', { align: 'center' });
@@ -707,7 +708,7 @@
         var t = this.t;
         U.bandGradient(ctx, 0, 0, W, H, [[0, '#02010a'], [1, '#2a1040']], 14);
         var fr = NC.Sprites.frame(ch, S.picks[0].ci, (t >> 4) & 1 ? 'win0' : 'win1', null, t >> 3);
-        ctx.save(); ctx.translate(60, 150); ctx.scale(1.5, 1.5); ctx.drawImage(fr.c, -fr.ox, -fr.oy); ctx.restore();
+        ctx.save(); ctx.translate(60, 150); ctx.scale(1.5, 1.5); NC.Sprites.blit(ctx, fr, 0, 0); ctx.restore();
         Font.drawGradient(ctx, 'CONGRATULATIONS!', W / 2, 10, '#ffffff', '#ffe040', { align: 'center', outline: '#10081a' });
         textBox(ctx, 8, 166, W - 16, 44);
         var lines = Font.wrap(ch.ending, 29);

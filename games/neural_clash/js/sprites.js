@@ -670,6 +670,12 @@
   // Returns { c: canvas, ox, oy } where (ox, oy) is the feet origin inside the canvas.
   NC.Sprites = {
     P: P,
+    // Draws a frame with its feet origin at (x, y), optionally scaled.
+    blit: function (ctx, fr, x, y, sc) {
+      sc = sc || 1;
+      var k = fr.k || 1;
+      ctx.drawImage(fr.c, x - fr.ox * sc, y - fr.oy * sc, fr.c.width / k * sc, fr.c.height / k * sc);
+    },
     frame: function (ch, ci, poseName, mode, phase) {
       var art = NC.Art && NC.Art.spriteFrame(ch.id, ci, poseName, mode);
       if (art) return art;

@@ -666,7 +666,7 @@
     ctx.globalAlpha = f.alpha;
     ctx.translate(x, y);
     if (f.facing < 0) ctx.scale(-1, 1);
-    ctx.drawImage(fr.c, -fr.ox, -fr.oy);
+    NC.Sprites.blit(ctx, fr, 0, 0);
     ctx.restore();
     // glue drips
     if (f.fx.glue > 0) { ctx.fillStyle = '#f0e0a0'; for (var g = 0; g < 3; g++) ctx.fillRect(x - 10 + g * 9, y - 2 - ((NC.frame + g * 5) % 8), 2, 3); }
@@ -770,7 +770,7 @@
       else if (m.kind === 'qwenclone') { fr = NC.Sprites.frame(NC.CHAR.qwen, m.ci, (m.t >> 3) & 1 ? 'dash' : 'hp1'); sc = 1; }
       else if (m.kind === 'kimimini') { fr = NC.Sprites.frame(NC.CHAR.kimi, (m.ci + (m.idx || 0)) % 4, 'jumpTuck'); sc = 0.3; }
       else if (m.kind === 'explorer') { fr = NC.Sprites.frame(NC.CHAR.astra, m.owner.ci, 'dash', 'gold'); sc = 0.8; }
-      if (fr) ctx.drawImage(fr.c, -fr.ox * sc, -fr.oy * sc, fr.c.width * sc, fr.c.height * sc);
+      if (fr) NC.Sprites.blit(ctx, fr, 0, 0, sc);
       ctx.restore();
       if (m.kind === 'explorer' && !m.hit) Font.draw(ctx, 'EXPLORER', x, y - 60, '#fff6a0', { align: 'center', shadow: '#000' });
       if (m.kind === 'miniqwen' && m.t < 40) Font.draw(ctx, '3.' + (8 + ((m.t >> 3) % 2)), x, y - 50, '#e0c8ff', { align: 'center', shadow: '#000' });
@@ -859,7 +859,7 @@
         case 'after':
           if (layer !== 'back') return;
           ctx.save(); ctx.globalAlpha = 0.5 * (1 - life); ctx.translate(Math.round(f.x - cam), Math.round(GY + f.y)); if (f.facing < 0) ctx.scale(-1, 1);
-          ctx.drawImage(f.fr.c, -f.fr.ox, -f.fr.oy); ctx.restore();
+          NC.Sprites.blit(ctx, f.fr, 0, 0); ctx.restore();
           if (f.label && f.t < 8) Font.draw(ctx, f.label, Math.round(f.x - cam), Math.round(GY + f.y) - 90, f.col, { align: 'center', shadow: '#000' });
           break;
         case 'spark':
@@ -896,7 +896,7 @@
           var gid = f.name.indexOf('FABLE') >= 0 ? 'fable' : 'opus';
           var fr = NC.Sprites.frame(NC.CHAR[gid], 0, 'hitHigh');
           ctx.save(); ctx.globalAlpha = 0.75 * (1 - life); ctx.translate(x, GY - f.t); if (f.facing < 0) ctx.scale(-1, 1);
-          ctx.drawImage(fr.c, -fr.ox * 0.6, -fr.oy * 0.6, fr.c.width * 0.6, fr.c.height * 0.6); ctx.restore();
+          NC.Sprites.blit(ctx, fr, 0, 0, 0.6); ctx.restore();
           Font.draw(ctx, f.name, x, GY - 70 - f.t, '#ffffff', { align: 'center', shadow: '#000' });
           break;
         case 'luna':
@@ -904,7 +904,7 @@
           var lf = NC.Sprites.frame(NC.CHAR.sol, 2, 'dash');
           var lx = Math.round(f.x - cam);
           ctx.fillStyle = 'rgba(200,220,255,0.3)'; ctx.beginPath(); ctx.arc(lx, GY - 50, 26, 0, 7); ctx.fill();
-          ctx.drawImage(lf.c, lx - lf.ox, GY - lf.oy);
+          NC.Sprites.blit(ctx, lf, lx, GY);
           Font.draw(ctx, 'LUNA', lx, GY - 100, '#c8d0e8', { align: 'center', shadow: '#000' });
           break;
         case 'researcher':
@@ -1058,8 +1058,8 @@
     var p = NC.Sprites.portrait(f.ch, f.ci, 3, 96, 112);
     var px = f.side === 0 ? -100 + slide * 110 : W + 4 - slide * 110;
     ctx.save(); ctx.beginPath(); ctx.rect(0, y + 2, W, (h - 4) * out); ctx.clip();
-    if (f.side === 1) { ctx.translate(px + 96, y - 20); ctx.scale(-1, 1); ctx.drawImage(p, 0, 0); }
-    else ctx.drawImage(p, px, y - 20);
+    if (f.side === 1) { ctx.translate(px + 96, y - 20); ctx.scale(-1, 1); U.blit(ctx, p, 0, 0); }
+    else U.blit(ctx, p, px, y - 20);
     ctx.restore();
     var tx = f.side === 0 ? W - 8 : 8;
     Font.drawGradient(ctx, f.super.name.length > 22 ? f.super.name.split(',')[0] : f.super.name, tx, y + 24, '#ffffff', pal.glow, { align: f.side === 0 ? 'right' : 'left', outline: '#10081a' });

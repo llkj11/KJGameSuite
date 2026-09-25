@@ -4,6 +4,7 @@
 
   NC.W = 256;          // SNES NTSC width
   NC.H = 224;          // SNES NTSC height
+  NC.RES = 2;          // internal pixels per game pixel: generated art is drawn at 2x detail
   NC.FPS = 60;
   NC.GROUND_Y = 200;   // screen-space floor line for fighters
   NC.STAGE_W = 448;    // world width of a fight stage
@@ -96,6 +97,12 @@
   U.lighten = function (hex, amt) { return U.mix(hex, '#ffffff', amt); };
 
   // ---------- canvas helpers ----------
+  // Draws a canvas at its game-pixel size. Hi-res art canvases carry k (art pixels per game
+  // pixel); plain canvases are drawn 1:1.
+  U.blit = function (ctx, c, x, y) {
+    var k = c.k || 1;
+    ctx.drawImage(c, x, y, c.width / k, c.height / k);
+  };
   U.makeCanvas = function (w, h) {
     var c = document.createElement('canvas');
     c.width = w; c.height = h;

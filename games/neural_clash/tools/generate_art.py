@@ -2,9 +2,9 @@
 """Generates Neural Clash art with Kenspire (imagegen.llkj.dev) and converts it into
 SNES-style game assets:
 
-  stages     one 448x224 pixel-art backdrop per stage (line-scrolled in game)
+  stages     one 896x448 (2x of 448x224) pixel-art backdrop per stage (line-scrolled in game)
   sprites    per fighter: a reference image, then one reference-guided edit per pose,
-             chroma-keyed, scaled, reduced to a 15-color palette with an outline, and
+             chroma-keyed, scaled, reduced to a 31-color palette (15 at --res 1) with an outline, and
              packed into one atlas per costume (costumes are SNES-style palette swaps)
   portraits  per fighter: a bust portrait (recolored per costume the same way)
 
@@ -45,7 +45,9 @@ BASE = os.environ.get('KENSPIRE_BASE_URL', 'https://imagegen.llkj.dev').rstrip('
 BROKER = os.environ.get('KENSPIRE_BROKER_URL', BASE + '/api/kencode/broker/token')
 UA = 'NeuralClash-ArtTool/1.0'
 OUTLINE = (20, 12, 28)
-STAND_H = 84          # standing sprite height in pixels at body scale 1.0
+STAND_H = 84          # standing sprite height in game pixels at body scale 1.0
+RES = 2               # art pixels per game pixel (the game renders at 2x internally); --res 1 for pure SNES
+COLORS = {1: dict(sprite=15, portrait=48, stage=96), 2: dict(sprite=31, portrait=96, stage=160)}
 lock = threading.Lock()
 
 
@@ -246,7 +248,7 @@ def to_sprite(raw_path, pose, body_s):
         raise RuntimeError('empty sprite after chroma key: ' + raw_path)
     img = img.crop(bb)
     w, h = img.size
-    std = STAND_H * body_s
+    std = STAND_H * body_s * RES
     if 'w' in pose:
         scale = std * pose['w'] / w
     else:
@@ -255,7 +257,7 @@ def to_sprite(raw_path, pose, body_s):
     small = img.convert('RGBa').resize((nw, nh), Image.Resampling.LANCZOS).convert('RGBA')
     a = np.asarray(small).copy()
     a[..., 3] = np.where(a[..., 3] > 110, 255, 0)
-    small = quantize_rgba(Image.fromarray(a, 'RGBA'), 15)
+    small = quantize_rgba(Image.fromarray(a, 'RGBA'), COLORS[RES]['sprite'])
     pad = Image.new('RGBA', (nw + 2, nh + 2), (0, 0, 0, 0))
     pad.paste(small, (1, 1))
     spr = add_outline(pad)
@@ -325,10 +327,20 @@ def recolor(img, pal_from, pal_to, keep_border=False):
     return Image.fromarray(a, 'RGBA')
 
 
+def save_png(img, out):
+    """Saves as an indexed PNG when the image has at most 256 colors (sprite art always does)."""
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    if img.mode == 'RGBA':
+        a = np.asarray(img)
+        if len(np.unique(a.reshape(-1, 4), axis=0)) <= 256:
+            img = img.quantize(colors=256, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
+    img.save(out, optimize=True)
+
+
 def pack_atlas(frames):
     """frames: {pose: (img, ox, oy)} -> (atlas image, {pose: [x, y, w, h, ox, oy]})"""
     items = sorted(frames.items(), key=lambda kv: -kv[1][0].size[1])
-    width, x, y, row_h, placed = 1024, 0, 0, 0, {}
+    width, x, y, row_h, placed = 1024 * RES, 0, 0, 0, {}
     for name, (img, ox, oy) in items:
         w, h = img.size
         if x + w > width:
@@ -346,12 +358,12 @@ def pack_atlas(frames):
 def to_portrait(raw_path):
     img = Image.open(raw_path).convert('RGB')
     w, h = img.size
-    tw, th = 160, 192
+    tw, th = 160 * RES, 192 * RES
     s = max(tw / w, th / h)
     img = img.resize((round(w * s), round(h * s)), Image.Resampling.LANCZOS)
     left = (img.size[0] - tw) // 2
     img = img.crop((left, 0, left + tw, th))
-    q = img.quantize(colors=48, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGBA')
+    q = img.quantize(colors=COLORS[RES]['portrait'], method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGBA')
     return q
 
 
@@ -364,8 +376,8 @@ def to_backdrop(raw_path):
     else:
         nh = w // 2
         img = img.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
-    img = img.resize((448, 224), Image.Resampling.LANCZOS)
-    return img.quantize(colors=96, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGB')
+    img = img.resize((448 * RES, 224 * RES), Image.Resampling.LANCZOS)
+    return img.quantize(colors=COLORS[RES]['stage'], method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGB')
 
 
 # ------------------------------------------------------------------ manifest
@@ -405,7 +417,7 @@ def run_stages(P, opt, man):
         if os.path.exists(raw):
             out = os.path.join(ART, 'stages', sid + '.png')
             os.makedirs(os.path.dirname(out), exist_ok=True)
-            to_backdrop(raw).save(out, optimize=True)
+            save_png(to_backdrop(raw), out)
             art[sid] = 'art/stages/' + sid + '.png'
             print('stage', sid, '->', out)
     write_manifest(man)
@@ -483,7 +495,7 @@ def build_sprite_atlases(P, cid, ch, art):
         atlas, placed = pack_atlas(recol)
         out = os.path.join(ART, 'sprites', f'{cid}_{ci}.png')
         os.makedirs(os.path.dirname(out), exist_ok=True)
-        atlas.save(out, optimize=True)
+        save_png(atlas, out)
         atlases.append(f'art/sprites/{cid}_{ci}.png')
         meta = placed
     art[cid] = {'atlases': atlases, 'frames': meta}
@@ -519,7 +531,7 @@ def run_portraits(P, opt, man, roster):
             img = recolor(base, roster[cid]['costumes'][0]['pal'], cos['pal'], keep_border=True)
             out = os.path.join(ART, 'portraits', f'{cid}_{ci}.png')
             os.makedirs(os.path.dirname(out), exist_ok=True)
-            img.save(out, optimize=True)
+            save_png(img, out)
             outs.append(f'art/portraits/{cid}_{ci}.png')
         art[cid] = outs
         print('portrait', cid)
@@ -595,6 +607,7 @@ def fetch_results(P, opt):
 
 
 def main():
+    global RES
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('what', nargs='?', default='all', choices=['all', 'stages', 'sprites', 'portraits', 'fetch'])
     ap.add_argument('--only', type=lambda s: s.split(','))
@@ -602,15 +615,18 @@ def main():
     ap.add_argument('--force', action='store_true')
     ap.add_argument('--process-only', action='store_true', help='rebuild game assets from existing raw files')
     ap.add_argument('--workers', type=int, default=4)
+    ap.add_argument('--res', type=int, choices=[1, 2], default=RES, help='art pixels per game pixel (default 2)')
     ap.add_argument('--print-plan', action='store_true',
                     help='write tools/art_plan.json listing every image to make (for generating with the Kenspire connector), no API calls')
     opt = ap.parse_args()
+    RES = opt.res
     P = json.load(open(os.path.join(ROOT, 'tools', 'art_prompts.json')))
     if opt.print_plan:
         write_plan(P, opt)
         return
     roster = load_roster()
     man = read_manifest()
+    man.setdefault('art', {})['res'] = RES
     if not opt.process_only:
         token()  # fail fast without auth
     if opt.what == 'fetch':
