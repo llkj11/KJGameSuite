@@ -800,12 +800,25 @@
     ctx.restore();
   };
 
+  var PROJ_GLOW = { envelope: '#ffb070', emdash: '#ffffff', flare: '#ffe060', sun: '#ff9a20', bubble: '#a0d8ff', pizza: '#ffb040',
+    wave: '#40a0ff', version: '#a070ff', drone: '#fff4c0' };
   P.drawProjectiles = function (ctx, cam) {
     var t = NC.frame;
     this.projectiles.forEach(function (p) {
       if (p.delay > 0) return;
       var x = Math.round(p.x - cam), y = Math.round(GY + p.y), f = p.facing;
       var cyc = (t >> 2) & 1;
+      // energy halo + motion trail under every projectile
+      var hc = PROJ_GLOW[p.kind] || p.color || '#ffffff';
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      for (var tr = 3; tr >= 1; tr--) {
+        ctx.globalAlpha = 0.16 / tr; ctx.fillStyle = hc;
+        ctx.beginPath(); ctx.ellipse(x - f * tr * 7, y, 11 - tr, 7 - tr, 0, 0, 7); ctx.fill();
+      }
+      var hg = ctx.createRadialGradient(x, y, 0, x, y, 18);
+      hg.addColorStop(0, hc); hg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalAlpha = 0.45 + 0.15 * cyc; ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(x, y, 18, 0, 7); ctx.fill();
+      ctx.restore();
       switch (p.kind) {
         case 'envelope':
           ctx.fillStyle = '#10081a'; ctx.fillRect(x - 8, y - 6, 16, 12);
