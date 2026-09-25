@@ -11,7 +11,8 @@
     "deepseek": "music/deepseek.mp3",
     "qwen": "music/qwen.mp3",
     "kimi": "music/kimi.mp3",
-    "mythos": "music/mythos.mp3"
+    "mythos": "music/mythos.mp3",
+    "victory": "music/victory.mp3"
   },
   "sfx": {},
   "voice": {}
