@@ -206,12 +206,12 @@
         "note": "Laura: quirky and energetic"
       },
       "kimi": {
-        "voice_id": "N2lVS1w4EtoT3dr4eOWO",
-        "note": "Callum: intense and cocky"
+        "voice_id": "SOYHLrjzK2X1ezoPC6cr",
+        "note": "Harry: fierce warrior"
       },
       "mythos": {
-        "voice_id": "pqHfZKP75CvOlQylNhV4",
-        "note": "Bill: old and ominous",
+        "voice_id": "XXnQpvB68nrXuhYQxMME",
+        "note": "Knightley: dapper, deep and ominous",
         "settings": {
           "stability": 0.7,
           "similarity_boost": 0.8,
@@ -220,8 +220,8 @@
       }
     },
     "announcer": {
-      "voice_id": "pNInz6obpgDQGcFmaJgB",
-      "note": "Adam: deep arcade announcer",
+      "voice_id": "YOq2y2Up4RgXP2HyXjE5",
+      "note": "Gaming - Unreal Tournament-style announcer",
       "settings": {
         "stability": 0.35,
         "similarity_boost": 0.8,

@@ -14,6 +14,14 @@
     "mythos": "music/mythos.mp3",
     "victory": "music/victory.mp3"
   },
-  "sfx": {},
+  "sfx": {
+    "hitH": "sfx/hitH.mp3",
+    "hitL": "sfx/hitL.mp3",
+    "counter": "sfx/counter.mp3",
+    "block": "sfx/block.mp3",
+    "ko": "sfx/ko.mp3",
+    "whiffL": "sfx/whiffL.mp3",
+    "whiffH": "sfx/whiffH.mp3"
+  },
   "voice": {}
 }
