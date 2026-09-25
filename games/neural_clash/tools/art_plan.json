@@ -1,5 +1,5 @@
 {
-  "how": "Every job as {kind, id, prompt, reference, save_to, aspect}. Paths are relative to games/neural_clash.\n    Generate each with Kenspire (text-to-image, or an image edit using `reference`), save it to `save_to`,\n    then run:  python3 tools/generate_art.py all --process-only",
+  "how": "Every job as {kind, id, prompt, reference, save_to, aspect}. Paths are relative to games/neural_clash.\n    Generate each with Kenspire (text-to-image, or an image edit using `reference`), save it to `save_to`,\n    then run:  python3 tools/generate_art.py all --process-only\n    Or record each result's server url in tools/art_results.json ({job id: \"/generated_images/...\"}) and run:\n    python3 tools/generate_art.py fetch",
   "jobs": [
     {
       "kind": "generate",

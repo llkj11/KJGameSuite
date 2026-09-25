@@ -102,6 +102,8 @@ python3 tools/generate_art.py all --process-only               # rebuild from ra
 2. Save each result to its `save_to` path.
 3. Run `python3 tools/generate_art.py all --process-only`. This needs no token.
 
+If the connector's images stay on the Kenspire server, record each result's server URL in `tools/art_results.json` as `{"job id": "/generated_images/..."}`. Then run `KENSPIRE_TOKEN=... python3 tools/generate_art.py fetch`. It downloads the recorded images into the raw folders and processes everything. Images already downloaded are skipped unless you pass `--force`.
+
 ## Other features
 
 - **Touch controls:** phones and tablets get an on-screen d-pad, LP/HP/LK/HK/SP buttons, and Start and Back.

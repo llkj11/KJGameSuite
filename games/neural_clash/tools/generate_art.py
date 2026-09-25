@@ -11,9 +11,12 @@ SNES-style game assets:
 Raw downloads are kept in assets/art/raw/ (gitignored); processed files go to
 assets/art/ and are registered under "art" in assets/manifest.json.
 
+`fetch` downloads images that were already generated on the Kenspire server (for example
+through the Kenspire MCP connector) and listed in tools/art_results.json, then processes everything.
+
 Auth: KENSPIRE_TOKEN, or KENSPIRE_BROKER_SECRET (+ optional KENSPIRE_BROKER_URL).
 
-  python3 tools/generate_art.py [stages|sprites|portraits|all] [--only fable,archive]
+  python3 tools/generate_art.py [stages|sprites|portraits|all|fetch] [--only fable,archive]
                                 [--poses idle,jab] [--force] [--process-only] [--workers 4]
 Requires: pip install pillow numpy
 """
@@ -409,16 +412,19 @@ def run_stages(P, opt, man):
 
 
 def run_parallel(jobs, workers):
+    ok = 0
     if not jobs:
-        return
+        return ok
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = {ex.submit(fn, *args): name for name, (fn, args) in jobs.items()}
         for f in as_completed(futs):
             try:
                 f.result()
+                ok += 1
                 print('  done', futs[f])
             except Exception as e:  # keep going; the game falls back to procedural art
                 print('  FAILED', futs[f], str(e)[:300])
+    return ok
 
 
 def reference_path(cid):
@@ -520,10 +526,14 @@ def run_portraits(P, opt, man, roster):
     write_manifest(man)
 
 
-def write_plan(P, opt):
-    """Every job as {kind, id, prompt, reference, save_to, aspect}. Paths are relative to games/neural_clash.
+PLAN_HOW = """Every job as {kind, id, prompt, reference, save_to, aspect}. Paths are relative to games/neural_clash.
     Generate each with Kenspire (text-to-image, or an image edit using `reference`), save it to `save_to`,
-    then run:  python3 tools/generate_art.py all --process-only"""
+    then run:  python3 tools/generate_art.py all --process-only
+    Or record each result's server url in tools/art_results.json ({job id: "/generated_images/..."}) and run:
+    python3 tools/generate_art.py fetch"""
+
+
+def plan_jobs(P, opt):
     rel = lambda p: os.path.relpath(p, ROOT)
     jobs = []
     for sid, desc in P['stages'].items():
@@ -548,15 +558,45 @@ def write_plan(P, opt):
                      'prompt': (f"Using this character as the reference: bust portrait (head and shoulders) of {desc} facing right in "
                                 "three-quarter view, confident fighting-game character-select expression, SNES fighting game portrait style "
                                 f"like Street Fighter Alpha, crisp pixel art, {P['portrait_bg']}.")})
+    return jobs
+
+
+def write_plan(P, opt):
+    jobs = plan_jobs(P, opt)
     out = os.path.join(ROOT, 'tools', 'art_plan.json')
     with open(out, 'w') as f:
-        json.dump({'how': write_plan.__doc__.strip(), 'jobs': jobs}, f, indent=2)
-    print(f'{len(jobs)} jobs -> {rel(out)}')
+        json.dump({'how': PLAN_HOW.strip(), 'jobs': jobs}, f, indent=2)
+    print(f'{len(jobs)} jobs -> {os.path.relpath(out, ROOT)}')
+
+
+def fetch_results(P, opt):
+    """Downloads images already generated on the Kenspire server (tools/art_results.json maps
+    job id -> server url) into the raw folders, so --process-only can build the game assets."""
+    results = json.load(open(os.path.join(ROOT, 'tools', 'art_results.json')))
+    jobs = {j['id']: j for j in plan_jobs(P, opt)}
+    todo = []
+    for jid, url in results.items():
+        if jid not in jobs:
+            continue
+        dest = os.path.join(ROOT, jobs[jid]['save_to'])
+        if os.path.exists(dest) and not opt.force:
+            continue
+        todo.append((jid, url, dest))
+
+    def get(url, dest):
+        data = http('GET', url, raw=True)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        with open(dest, 'wb') as f:
+            f.write(data)
+
+    ok = run_parallel({jid: (get, (url, dest)) for jid, url, dest in todo}, opt.workers)
+    missing = [jid for jid in jobs if jid not in results]
+    print(f'fetched {ok} of {len(todo)} images to download; {len(missing)} plan jobs have no result yet')
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('what', nargs='?', default='all', choices=['all', 'stages', 'sprites', 'portraits'])
+    ap.add_argument('what', nargs='?', default='all', choices=['all', 'stages', 'sprites', 'portraits', 'fetch'])
     ap.add_argument('--only', type=lambda s: s.split(','))
     ap.add_argument('--poses', type=lambda s: s.split(','))
     ap.add_argument('--force', action='store_true')
@@ -573,6 +613,9 @@ def main():
     man = read_manifest()
     if not opt.process_only:
         token()  # fail fast without auth
+    if opt.what == 'fetch':
+        fetch_results(P, opt)
+        opt.what, opt.process_only = 'all', True
     if opt.what in ('all', 'stages'):
         run_stages(P, opt, man)
     if opt.what in ('all', 'sprites'):
