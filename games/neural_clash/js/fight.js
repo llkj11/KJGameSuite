@@ -213,6 +213,8 @@
       if (this.atWall(d) && !isProjectile) a.vx = -a.facing * (box.push || 3);
     }
     var big = dmg >= 85;
+    NC.Input.rumble(d.side, big ? 0.9 : 0.45, big ? 180 : 90);
+    NC.Input.rumble(a.side, big ? 0.35 : 0.15, 60);
     this.hitstop = Math.max(this.hitstop, Math.min(14, 6 + Math.floor(dmg / 18)));
     if (big) this.shake(2, 8);
     var hb = d.hurtbox() || { y: d.y - 60 };
@@ -940,8 +942,41 @@
       var w = Font.measure(t.text) * (t.big ? 1 : 1);
       x = U.clamp(x, w / 2 + 2, W - w / 2 - 2);
       var col = t.big && (t.t & 4) ? '#ffffff' : t.color;
+      // translucent backing keeps callouts readable over busy stage screens
+      ctx.fillStyle = 'rgba(8,4,20,0.55)';
+      ctx.fillRect(Math.round(x - w / 2) - 3, y - 2, w + 6, 12);
       Font.draw(ctx, t.text, x, y, col, { align: 'center', outline: '#10081a' });
     });
+  };
+
+  // Training overlay: P1 input history (newest at the top) plus hit/hurt boxes.
+  var ARROW = { 1: 'DB', 2: 'D', 3: 'DF', 4: 'B', 5: '', 6: 'F', 7: 'UB', 8: 'U', 9: 'UF' };
+  P.drawInputs = function (ctx) {
+    var f = this.fighters[0], h = f.hist, rows = [], last = null;
+    for (var i = h.length - 1; i >= 0 && rows.length < 12; i--) {
+      var e = h[i], btn = (e.p ? 'P' : '') + (e.k ? 'K' : '');
+      var key = e.d + btn;
+      if (key === last || (e.d === 5 && !btn)) { last = key; continue; }
+      last = key;
+      rows.push({ d: ARROW[e.d], b: btn });
+    }
+    if (rows.length) { ctx.fillStyle = 'rgba(0,0,16,0.55)'; ctx.fillRect(2, 80, 50, rows.length * 9 + 4); }
+    rows.forEach(function (r, k) {
+      Font.draw(ctx, (r.d || 'N') + (r.b ? '+' + r.b : ''), 5, 82 + k * 9, r.b ? '#ffe040' : '#c0c0e0');
+    });
+    // boxes
+    var cam = Math.round(this.cam);
+    this.fighters.forEach(function (ft) {
+      var hb = ft.hurtbox();
+      if (hb) { ctx.strokeStyle = 'rgba(80,160,255,0.9)'; ctx.strokeRect(Math.round(hb.x - cam) + 0.5, Math.round(GY + hb.y) + 0.5, Math.round(hb.w), Math.round(hb.h)); }
+      if (ft.hb) {
+        var b = ft.worldBox(ft.hb.box);
+        ctx.strokeStyle = 'rgba(255,60,60,0.95)';
+        ctx.strokeRect(Math.round(b.x - cam) + 0.5, Math.round(GY + b.y) + 0.5, Math.round(b.w), Math.round(b.h));
+      }
+    });
+    var d = this.fighters[1];
+    if (d.comboDmg) Font.draw(ctx, 'DMG ' + Math.round(d.comboDmg), W - 6, 40, '#ffffff', { align: 'right', shadow: '#10081a' });
   };
 
   // ------------------------------------------------------------------ HUD
@@ -978,7 +1013,8 @@
       }
       // meter
       var mx = left ? 8 : 176, my = 208, mw = 72;
-      Font.draw(ctx, 'COMPUTE', left ? mx : mx + mw, my - 10, '#8ad0ff', { align: left ? 'left' : 'right', shadow: '#10081a' });
+      var full = f.meter >= NC.MAX_METER;
+      Font.draw(ctx, full && (NC.frame & 16) ? 'SUPER!' : 'COMPUTE', left ? mx : mx + mw, my - 10, full ? '#ffe040' : '#8ad0ff', { align: left ? 'left' : 'right', shadow: '#10081a' });
       ctx.fillStyle = '#10081a'; ctx.fillRect(mx - 1, my - 1, mw + 2, 8);
       for (var sg = 0; sg < 3; sg++) {
         var sx = mx + sg * 24;
@@ -989,7 +1025,6 @@
           ctx.fillRect(sx, my, Math.round(23 * fill), 6);
         }
       }
-      if (f.meter >= NC.MAX_METER && (NC.frame & 16)) Font.draw(ctx, 'SUPER!', left ? mx + mw + 4 : mx - 4, my - 1, '#ffe040', { align: left ? 'left' : 'right', shadow: '#10081a' });
     }
     // timer
     var tt = this.mode === 'training' || NC.settings.timer >= 100 ? '--' : String(Math.max(0, this.timer)).padStart(2, '0');

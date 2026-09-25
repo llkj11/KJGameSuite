@@ -76,6 +76,33 @@ Prompts and voice choices are in `tools/prompts.json`.
 - Behind an HTTPS proxy on Node 22, add `NODE_USE_ENV_PROXY=1`.
 - Serve the game over HTTP (not `file://`) so the browser can load the generated files.
 
+## Generated art: Kenspire
+
+`tools/generate_art.py` produces SNES-style art through Kenspire (imagegen.llkj.dev). It has three parts:
+
+- **Stages:** one 448x224 pixel-art backdrop per stage. In game it is line-scrolled per scanline: the sky moves slowest and the floor tracks the camera.
+- **Sprites:** per fighter, a reference image, then one reference-guided edit for each of 31 poses. Each pose is chroma-keyed, scaled, reduced to a 15-color SNES palette and outlined. Poses are packed into one atlas per costume. Costumes are SNES-style palette swaps of the default colors.
+- **Portraits:** a bust per fighter, recolored per costume in the same way.
+
+```bash
+pip install pillow numpy
+KENSPIRE_TOKEN=... python3 tools/generate_art.py all            # or: stages | sprites | portraits
+python3 tools/generate_art.py sprites --only grok --poses idle,jab --force
+python3 tools/generate_art.py all --process-only               # rebuild from raw files, no API calls
+```
+
+- **Auth:** `KENSPIRE_TOKEN`, or `KENSPIRE_BROKER_SECRET` (plus an optional `KENSPIRE_BROKER_URL`).
+- **Files:** raw downloads stay in `assets/art/raw/`, which is gitignored.
+- **Prompts:** character descriptions, pose list and stage descriptions are in `tools/art_prompts.json`.
+- **Fallback:** anything not generated keeps the procedural art.
+
+## Other features
+
+- **Touch controls:** phones and tablets get an on-screen d-pad, LP/HP/LK/HK/SP buttons, and Start and Back.
+- **Stage select:** Versus modes have a stage-select screen with live previews. The opponent's home stage is preselected, and there is a Random option.
+- **Training overlay:** turn it on in Options. It shows player 1's input history, hitboxes (red), hurtboxes (blue) and combo damage.
+- **Gamepad rumble:** hits vibrate the gamepad in Chromium browsers.
+
 ## Code map
 
 | File | Purpose |
@@ -92,6 +119,8 @@ Prompts and voice choices are in `tools/prompts.json`.
 | `js/fight.js` | Rounds, hit resolution, projectiles, minions, camera, HUD |
 | `js/ai.js` | CPU opponent (difficulty 1-5, per-character personality) |
 | `js/scenes.js` | Title, options, select, VS, win, continue, ending |
+| `js/art.js` | Loads generated stage backdrops, portraits and sprite atlases |
+| `js/touch.js` | On-screen controls for touch devices |
 | `js/main.js` | Loop, scaling, mosaic transitions, CRT filter |
 
 For development, URL hashes skip the menus:

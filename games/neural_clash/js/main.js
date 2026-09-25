@@ -11,9 +11,12 @@
 
   NC.applyScale = function () {
     var aspect = NC.settings.aspect ? 8 / 7 : 1;
-    var availW = window.innerWidth - 8, availH = window.innerHeight - 28;
-    scale = Math.max(1, Math.floor(Math.min(availW / (W * aspect), availH / H)));
-    outW = Math.round(W * aspect * scale); outH = H * scale;
+    var touchUI = document.body.classList.contains('has-touch');
+    var availW = window.innerWidth - 8, availH = window.innerHeight - (touchUI ? 196 : 28);
+    scale = Math.min(availW / (W * aspect), availH / H);
+    // integer scaling on desktop; on small touch screens use the best fit so the game fills the width
+    scale = touchUI && scale < 2 ? Math.max(0.5, scale) : Math.max(1, Math.floor(scale));
+    outW = Math.round(W * aspect * scale); outH = Math.round(H * scale);
     screen.width = outW; screen.height = outH;
     sctx.imageSmoothingEnabled = false;
   };
@@ -70,6 +73,7 @@
 
   // Test hooks: #fight=p1,p2[,stage[,mode]]  #select  #title  #options
   function boot() {
+    NC.Art.init();
     var h = decodeURIComponent(location.hash.slice(1));
     if (h.indexOf('fight=') === 0) {
       var a = h.slice(6).split(',');

@@ -80,6 +80,7 @@
       if (ay < -0.5) s.up = true;
       if (ay > 0.5) s.down = true;
       players[slot].device = 'pad';
+      players[slot].pad = gp.index;
       slot++;
     }
   }
@@ -109,7 +110,26 @@
   function confirm(who) { return menuPressed('lp', who) || menuPressed('start', who) || menuPressed('hp', who); }
   function cancel(who) { return menuPressed('lk', who) || menuPressed('back', who); }
 
+  // Gamepad rumble (Chrome/Edge: vibrationActuator). strength 0..1, ms duration.
+  function rumble(who, strength, ms) {
+    var pl = players[who];
+    if (!pl || pl.device !== 'pad' || !navigator.getGamepads) return;
+    var gp = navigator.getGamepads()[pl.pad];
+    var act = gp && gp.vibrationActuator;
+    if (act && act.playEffect) {
+      try { act.playEffect('dual-rumble', { duration: ms || 120, strongMagnitude: strength, weakMagnitude: Math.min(1, strength * 1.2) }); } catch (e) { /* unsupported */ }
+    }
+  }
+
+  // Touch controls feed player 1's key state.
+  function touch(btn, down) {
+    keyState[0][btn] = down;
+    if (down) latched[0][btn] = true;
+  }
+
   NC.Input = {
+    rumble: rumble,
+    touch: touch,
     players: players,
     poll: poll,
     pressed: menuPressed,

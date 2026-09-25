@@ -177,7 +177,7 @@
       { k: 'sfx', label: 'SFX VOLUME', vals: [0, 0.2, 0.4, 0.6, 0.8, 1], fmt: function (v) { return Math.round(v * 10) + '/10'; } },
       { k: 'crt', label: 'CRT SCANLINES', vals: [false, true], fmt: function (v) { return v ? 'ON' : 'OFF'; } },
       { k: 'aspect', label: '8:7 PIXEL ASPECT', vals: [false, true], fmt: function (v) { return v ? 'ON' : 'OFF'; } },
-      { k: 'showInputs', label: 'TRAINING INPUTS', vals: [false, true], fmt: function (v) { return v ? 'ON' : 'OFF'; } },
+      { k: 'showInputs', label: 'TRAINING OVERLAY', vals: [false, true], fmt: function (v) { return v ? 'ON' : 'OFF'; } },
       { k: '_back', label: 'BACK' }
     ];
     return {
@@ -375,8 +375,9 @@
           S.ladder = others; S.stageIdx = 0; S.continues = 0;
           NC.startArcadeMatch();
         } else {
-          var stage = S.mode === 'training' ? NC.CHAR[P[0].id].stage : NC.CHAR[P[1].id].stage;
-          Scenes.go(NC.VSScene({ p1: S.picks[0], p2: S.picks[1], stage: stage, music: NC.CHAR[P[1].id].music }));
+          var o = { p1: S.picks[0], p2: S.picks[1], music: NC.CHAR[P[1].id].music };
+          if (S.mode === 'training') { o.stage = NC.CHAR[P[0].id].stage; Scenes.go(NC.VSScene(o)); }
+          else Scenes.go(NC.StageSelectScene(o, NC.CHAR[P[1].id].stage));
         }
       },
       draw: function (ctx) {
@@ -496,6 +497,45 @@
         if (self.showMoves && lpl && lpl.id && NC.CHAR[lpl.id]) {
           ctx.fillStyle = 'rgba(0,0,16,0.88)'; ctx.fillRect(0, 0, W, H);
           NC.drawMoveList(ctx, NC.CHAR[lpl.id]);
+        }
+      }
+    };
+  };
+
+  // ------------------------------------------------------------------ STAGE SELECT (versus)
+  NC.StageSelectScene = function (o, defaultStage) {
+    var ids = NC.Stages.ids.concat(['random']);
+    var sel = Math.max(0, ids.indexOf(defaultStage));
+    return {
+      t: 0,
+      update: function () {
+        this.t++;
+        if (I.pressed('left')) { sel = (sel + ids.length - 1) % ids.length; A.sfx('cursor'); }
+        if (I.pressed('right')) { sel = (sel + 1) % ids.length; A.sfx('cursor'); }
+        if (I.cancel()) { A.sfx('cancel'); Scenes.go(NC.SelectScene()); return; }
+        if (this.t > 10 && I.confirm()) {
+          A.sfx('confirm');
+          o.stage = ids[sel] === 'random' ? U.choice(NC.Stages.ids) : ids[sel];
+          Scenes.go(NC.VSScene(o));
+        }
+      },
+      draw: function (ctx) {
+        var id = ids[sel], t = this.t;
+        if (id === 'random') {
+          U.bandGradient(ctx, 0, 0, W, H, [[0, '#101438'], [1, '#2a0a3a']], 14);
+          Font.draw(ctx, '?', W / 2, 70, (t >> 3) & 1 ? '#ffffff' : '#8080c0', { align: 'center', scale: 6 });
+        } else {
+          NC.Stages.draw(ctx, id, 96 + Math.sin(t * 0.02) * 80, t);
+        }
+        ctx.fillStyle = 'rgba(0,0,16,0.7)'; ctx.fillRect(0, 0, W, 30); ctx.fillRect(0, 176, W, 48);
+        Font.drawGradient(ctx, 'SELECT STAGE', W / 2, 10, '#ffffff', '#40c8ff', { align: 'center', outline: '#10081a' });
+        Font.draw(ctx, '<', 8, 190, (t >> 3) & 1 ? '#ffe040' : '#ffffff');
+        Font.draw(ctx, '>', W - 16, 190, (t >> 3) & 1 ? '#ffe040' : '#ffffff');
+        Font.drawGradient(ctx, id === 'random' ? 'RANDOM' : NC.Stages.name(id), W / 2, 184, '#ffffff', '#ffe040', { align: 'center', outline: '#10081a' });
+        if (id !== 'random') Font.draw(ctx, NC.Stages.place(id) + (NC.Stages.gravity(id) < 1 ? '  LOW GRAVITY' : ''), W / 2, 196, '#a0a0c8', { align: 'center' });
+        for (var i = 0; i < ids.length; i++) {
+          ctx.fillStyle = i === sel ? '#ffe040' : '#40406a';
+          ctx.fillRect(W / 2 - ids.length * 5 + i * 10, 210, 6, 4);
         }
       }
     };

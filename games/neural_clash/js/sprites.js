@@ -671,6 +671,8 @@
   NC.Sprites = {
     P: P,
     frame: function (ch, ci, poseName, mode, phase) {
+      var art = NC.Art && NC.Art.spriteFrame(ch.id, ci, poseName, mode);
+      if (art) return art;
       var animated = ch.look.animated ? (phase || 0) & 3 : 0;
       var key = ch.id + '|' + ci + '|' + poseName + '|' + (mode || '') + '|' + animated;
       var hit = cache[key];
@@ -682,6 +684,8 @@
     },
     // Bust portrait at integer scale, cropped around head/chest. Always faces right.
     portrait: function (ch, ci, scale, w, h, mode) {
+      var art = NC.Art && NC.Art.portrait(ch.id, ci, w, h, mode);
+      if (art) return art;
       var key = 'P|' + ch.id + '|' + ci + '|' + scale + '|' + w + 'x' + h + '|' + (mode || '');
       if (cache[key]) return cache[key];
       var pose = POSES[ch.look.portraitPose || 'portrait'];

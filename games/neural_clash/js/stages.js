@@ -844,6 +844,7 @@
       return built[id];
     },
     draw: function (ctx, id, cam, t) {
+      if (NC.Art && NC.Art.drawStage(ctx, id, cam)) return;
       var S = NC.Stages.get(id);
       S.def.draw(ctx, S, cam, t);
     },
