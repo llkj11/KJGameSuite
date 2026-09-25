@@ -520,6 +520,40 @@ def run_portraits(P, opt, man, roster):
     write_manifest(man)
 
 
+def write_plan(P, opt):
+    """Every job as {kind, id, prompt, reference, save_to, aspect}. Paths are relative to games/neural_clash.
+    Generate each with Kenspire (text-to-image, or an image edit using `reference`), save it to `save_to`,
+    then run:  python3 tools/generate_art.py all --process-only"""
+    rel = lambda p: os.path.relpath(p, ROOT)
+    jobs = []
+    for sid, desc in P['stages'].items():
+        if opt.only and sid not in opt.only:
+            continue
+        jobs.append({'kind': 'generate', 'id': 'stage:' + sid, 'aspect': '16:9', 'save_to': rel(os.path.join(RAW, 'stages', sid + '.png')),
+                     'prompt': (f"{P['style'].replace('sprite art', 'stage background art')}. Wide side-view fighting game stage background: "
+                                f"{desc}. The ground fills the bottom quarter of the image, empty open floor in the middle for two fighters, "
+                                "no fighters, no people in the foreground, no text, no UI, no health bars.")})
+    for cid, desc in P['characters'].items():
+        if opt.only and cid not in opt.only:
+            continue
+        ref = rel(reference_path(cid))
+        jobs.append({'kind': 'generate', 'id': cid + ':reference', 'aspect': '1:1', 'save_to': ref,
+                     'prompt': f"{P['style']}. Full-body character sprite of {desc} Pose: {P['poses']['idle']['desc']}. {P['sprite_bg']}"})
+        for pname, pose in P['poses'].items():
+            jobs.append({'kind': 'edit', 'id': f'{cid}:{pname}', 'reference': ref,
+                         'save_to': rel(os.path.join(RAW, 'sprites', cid, pname + '.png')),
+                         'prompt': (f"Redraw this exact same character with the same face, hair, outfit, colors, proportions and pixel-art "
+                                    f"style, in a new pose: {pose['desc']}. Full body. {P['sprite_bg']}")})
+        jobs.append({'kind': 'edit', 'id': cid + ':portrait', 'reference': ref, 'save_to': rel(os.path.join(RAW, 'portraits', cid + '.png')),
+                     'prompt': (f"Using this character as the reference: bust portrait (head and shoulders) of {desc} facing right in "
+                                "three-quarter view, confident fighting-game character-select expression, SNES fighting game portrait style "
+                                f"like Street Fighter Alpha, crisp pixel art, {P['portrait_bg']}.")})
+    out = os.path.join(ROOT, 'tools', 'art_plan.json')
+    with open(out, 'w') as f:
+        json.dump({'how': write_plan.__doc__.strip(), 'jobs': jobs}, f, indent=2)
+    print(f'{len(jobs)} jobs -> {rel(out)}')
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('what', nargs='?', default='all', choices=['all', 'stages', 'sprites', 'portraits'])
@@ -528,8 +562,13 @@ def main():
     ap.add_argument('--force', action='store_true')
     ap.add_argument('--process-only', action='store_true', help='rebuild game assets from existing raw files')
     ap.add_argument('--workers', type=int, default=4)
+    ap.add_argument('--print-plan', action='store_true',
+                    help='write tools/art_plan.json listing every image to make (for generating with the Kenspire connector), no API calls')
     opt = ap.parse_args()
     P = json.load(open(os.path.join(ROOT, 'tools', 'art_prompts.json')))
+    if opt.print_plan:
+        write_plan(P, opt)
+        return
     roster = load_roster()
     man = read_manifest()
     if not opt.process_only:

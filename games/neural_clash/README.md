@@ -96,6 +96,12 @@ python3 tools/generate_art.py all --process-only               # rebuild from ra
 - **Prompts:** character descriptions, pose list and stage descriptions are in `tools/art_prompts.json`.
 - **Fallback:** anything not generated keeps the procedural art.
 
+**With the Kenspire connector instead of a token:** run `python3 tools/generate_art.py --print-plan`. It writes `tools/art_plan.json`, which lists 340 jobs: 10 stages, then for each fighter a reference image, 31 poses and a portrait.
+
+1. Generate each job with the connector's tools. Jobs marked `edit` start from their `reference` image.
+2. Save each result to its `save_to` path.
+3. Run `python3 tools/generate_art.py all --process-only`. This needs no token.
+
 ## Other features
 
 - **Touch controls:** phones and tablets get an on-screen d-pad, LP/HP/LK/HK/SP buttons, and Start and Back.
