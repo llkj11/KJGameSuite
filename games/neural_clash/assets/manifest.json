@@ -8,7 +8,8 @@
     "sol": "music/sol.mp3",
     "grok": "music/grok.mp3",
     "gemini": "music/gemini.mp3",
-    "deepseek": "music/deepseek.mp3"
+    "deepseek": "music/deepseek.mp3",
+    "qwen": "music/qwen.mp3"
   },
   "sfx": {},
   "voice": {}
