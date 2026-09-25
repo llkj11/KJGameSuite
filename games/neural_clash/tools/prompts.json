@@ -1,0 +1,288 @@
+{
+  "music": {
+    "model": "lyria-3.5",
+    "base": "16-bit Super Nintendo (SNES) fighting game music in the style of mid-90s arcade ports, SPC700 sampled instruments, warm stereo echo, punchy sampled drums, loopable ending, instrumental only, no vocals.",
+    "tracks": {
+      "title": "Title screen anthem. B-flat major, 128 BPM. Brass fanfare over orchestra hits and a driving marching snare, heroic and triumphant. [0:00] fanfare intro [0:15] main theme [0:45] bridge [1:15] reprise.",
+      "select": "Character select screen loop. F major, 116 BPM, light swing. Slap bass, marimba lead, electric piano offbeats, playful and bouncy.",
+      "fable": "Stage theme for a stoic, restrained titan who is secretly the most powerful fighter. D minor, 138 BPM. Soaring strings and French horn melody, harpsichord arpeggios, noble and heroic like a 16-bit RPG hero theme.",
+      "opus": "Stage theme for an elegant orchestra conductor. G minor, 150 BPM. A baroque-era fugue with strict counterpoint turned into a fighting game battle theme: harpsichord lead, pizzicato strings, walking bass, timpani.",
+      "astra": "Stage theme for a slow, godlike cosmic emperor at a desert data center at sunset. C minor, 120 BPM. Choir pads, pipe organ, huge tom drums, bell arpeggios, epic and ominous.",
+      "sol": "Stage theme for a fast, sunny, cheerful sprinter at a product launch livestream. E major, 160 BPM. Synth-funk with slap bass, clavinet, brass stabs, bright pulse-wave lead.",
+      "grok": "Stage theme for a swaggering rebel brawler at an industrial supercomputer site at night. E minor, 170 BPM. Distorted guitar metal, palm-muted power chord chugs, double kick drum, siren synth lead.",
+      "gemini": "Stage theme for a hyper-fast, anxious speedster at a tech keynote amphitheater. F-sharp minor, 160 BPM. Frantic eurobeat with supersaw lead, square-wave arpeggios, four-on-the-floor kick.",
+      "deepseek": "Stage theme for a calm, frugal martial-arts monk at West Lake, Hangzhou at night. D minor pentatonic, 110 BPM. Guzheng plucks, erhu lead with vibrato, bamboo flute, taiko drums, big echo.",
+      "qwen": "Stage theme for a hyperactive shapeshifter at a neon Singles' Day night market. C major pentatonic, 170 BPM. Festive hyper-pop: bright square lead, marimba arpeggios, gongs, fast hi-hats.",
+      "kimi": "Stage theme for a giant moon ninja on the lunar surface. B minor, 128 BPM. Spacey synthwave with analog bass, lush pads, bell arpeggios, very long echo, lonely and huge.",
+      "mythos": "Final boss theme for an unsealed, forbidden AI in an opened vault. C-sharp minor, 100 BPM. Cathedral pipe organ, low choir, pedal bass, ominous bells, dread building to a climax.",
+      "victory": "Short 6-second victory jingle. C major, 140 BPM. Brass fanfare with a snare roll and a final sustained chord. No loop."
+    },
+    "maxSeconds": {
+      "victory": 7
+    }
+  },
+  "sfx": {
+    "base": "16-bit retro SNES fighting game sound effect, crunchy low-bitrate sample,",
+    "effects": {
+      "hitL": {
+        "text": "fast snappy punch to the face, tight smack with a solid low thump",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 3
+      },
+      "hitH": {
+        "text": "brutal heavy punch impact, bone-crunching thwack with a deep sub-bass boom and meaty crunch",
+        "duration": 0.7,
+        "combat": true,
+        "variants": 3
+      },
+      "counter": {
+        "text": "devastating counter-hit impact, explosive crack and deep boom with a bright metallic ring",
+        "duration": 0.9,
+        "combat": true,
+        "variants": 2
+      },
+      "block": {
+        "text": "hard attack blocked by armored forearms, sharp dense clack with a short low thud",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 3
+      },
+      "ko": {
+        "text": "colossal final knockout punch, gigantic explosive impact with thunderous low boom and crackle",
+        "duration": 1.4,
+        "combat": true
+      },
+      "koSlow": {
+        "text": "slow-motion knockout blow, massive cinematic boom with a long deep rumbling thunder tail, reverberant",
+        "duration": 2.6,
+        "combat": true
+      },
+      "superBurst": {
+        "text": "super move unleashed, huge explosive energy detonation with a whooshing blast wave and deep bass boom",
+        "duration": 1.4,
+        "combat": true
+      },
+      "whiffL": {
+        "text": "quick sharp whoosh of a fast jab cutting the air",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 3
+      },
+      "whiffH": {
+        "text": "heavy powerful kick swing whoosh, thick air rip",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 2
+      },
+      "land": {
+        "text": "feet landing hard on a wooden floor, tight heavy thump",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 2
+      },
+      "thud": {
+        "text": "body slamming hard onto the ground, heavy crunchy thud with a floor-shaking boom",
+        "duration": 0.8,
+        "combat": true,
+        "variants": 2
+      },
+      "dash": {
+        "text": "explosive fast dash, sharp air burst swoosh",
+        "duration": 0.5,
+        "combat": true
+      },
+      "fire": {
+        "text": "energy fireball launched, hadouken-style blast with a fiery whoosh and crackle",
+        "duration": 0.8,
+        "combat": true
+      },
+      "charge": {
+        "text": "power charging up, intense rising electric energy hum building up",
+        "duration": 1.0,
+        "combat": true
+      },
+      "beam": {
+        "text": "enormous energy beam blasting, roaring laser cannon with deep rumble and crackling",
+        "duration": 1.8,
+        "combat": true
+      },
+      "teleport": {
+        "text": "teleport, sharp sci-fi zap warble ending in a pop",
+        "duration": 0.6,
+        "combat": true
+      },
+      "explode": {
+        "text": "massive explosion, crunchy blast with a deep booming tail",
+        "duration": 1.4,
+        "combat": true
+      },
+      "clang": {
+        "text": "huge steel girder slammed onto concrete, loud ringing clang with a heavy impact",
+        "duration": 1.0,
+        "combat": true
+      },
+      "splash": {
+        "text": "huge whale crashing out of the water, massive splash with a deep impact",
+        "duration": 1.2,
+        "combat": true
+      },
+      "super": {
+        "text": "super move activation, dramatic rising energy whoosh into a massive orchestra hit stab",
+        "duration": 1.2,
+        "combat": true
+      },
+      "parry": {
+        "text": "perfect parry, crisp metallic shing with a bright sparkle ring",
+        "duration": 0.6,
+        "combat": true
+      },
+      "grab": {
+        "text": "quick forceful grab, cloth yank and a heavy grip thump",
+        "duration": 0.5,
+        "combat": true
+      },
+      "jump": {
+        "text": "quick springy jump whoosh",
+        "duration": 0.5,
+        "combat": true
+      },
+      "round": {
+        "text": "round start, huge orchestra hit stab with a timpani boom",
+        "duration": 1.0,
+        "combat": true
+      },
+      "fight": {
+        "text": "fight start, massive orchestra hit with crash cymbal and taiko drum boom",
+        "duration": 1.2,
+        "combat": true
+      },
+      "kostinger": {
+        "text": "knockout sting, gigantic orchestra hit with a thunder crash and taiko drums",
+        "duration": 1.6,
+        "combat": true
+      },
+      "powerup": {
+        "text": "power-up acquired, ascending arpeggio chime",
+        "duration": 0.8
+      },
+      "denied": {
+        "text": "access denied, two low error buzzes",
+        "duration": 0.7
+      },
+      "cursor": {
+        "text": "menu cursor move, tiny tick",
+        "duration": 0.5
+      },
+      "confirm": {
+        "text": "menu confirm, bright two-note chime",
+        "duration": 0.5
+      },
+      "cancel": {
+        "text": "menu cancel, descending blip",
+        "duration": 0.5
+      },
+      "costume": {
+        "text": "costume swap, sparkly shimmer",
+        "duration": 0.6
+      },
+      "pause": {
+        "text": "game paused, two soft beeps",
+        "duration": 0.5
+      },
+      "coin": {
+        "text": "arcade credit inserted, coin chime",
+        "duration": 0.6
+      }
+    },
+    "combat_base": "Punchy 90s arcade fighting game sound effect (Street Fighter Alpha, Killer Instinct), huge and hard-hitting, sharp transient at the very start with no silence before it, heavy low end, no music, no voice, no speech,"
+  },
+  "voices": {
+    "model": "eleven_multilingual_v2",
+    "settings": {
+      "stability": 0.4,
+      "similarity_boost": 0.8,
+      "style": 0.45,
+      "use_speaker_boost": true
+    },
+    "characters": {
+      "fable": {
+        "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+        "note": "George: warm, measured storyteller"
+      },
+      "opus": {
+        "voice_id": "onwK4e9ZLuTAKqWW03F9",
+        "note": "Daniel: calm, polished British"
+      },
+      "astra": {
+        "voice_id": "nPczCjzI2devNBz1zQrb",
+        "note": "Brian: deep and grand",
+        "settings": {
+          "stability": 0.55,
+          "similarity_boost": 0.8,
+          "style": 0.3
+        }
+      },
+      "sol": {
+        "voice_id": "TX3LPaxmHKxFdv7VOQHJ",
+        "note": "Liam: young and upbeat"
+      },
+      "grok": {
+        "voice_id": "CwhRBWXzGAHq8TQ4Fs17",
+        "note": "Roger: laid-back swagger"
+      },
+      "gemini": {
+        "voice_id": "cgSgspJ2msm6clMCkdW9",
+        "note": "Jessica: fast, playful, anxious",
+        "settings": {
+          "stability": 0.3,
+          "similarity_boost": 0.75,
+          "style": 0.6
+        }
+      },
+      "deepseek": {
+        "voice_id": "cjVigY5qzO86Huf0OWal",
+        "note": "Eric: smooth and unhurried"
+      },
+      "qwen": {
+        "voice_id": "FGY2WhTYpPnrIDTdsKH5",
+        "note": "Laura: quirky and energetic"
+      },
+      "kimi": {
+        "voice_id": "SOYHLrjzK2X1ezoPC6cr",
+        "note": "Harry: fierce warrior"
+      },
+      "mythos": {
+        "voice_id": "XXnQpvB68nrXuhYQxMME",
+        "note": "Knightley: dapper, deep and ominous",
+        "settings": {
+          "stability": 0.7,
+          "similarity_boost": 0.8,
+          "style": 0.2
+        }
+      }
+    },
+    "announcer": {
+      "voice_id": "YOq2y2Up4RgXP2HyXjE5",
+      "note": "Gaming - Unreal Tournament-style announcer",
+      "settings": {
+        "stability": 0.35,
+        "similarity_boost": 0.8,
+        "style": 0.8
+      },
+      "lines": {
+        "round1": "Round one!",
+        "round2": "Round two!",
+        "round3": "Round three!",
+        "round4": "Round four!",
+        "round5": "Round five!",
+        "final": "Final round!",
+        "fight": "Fight!",
+        "ko": "K. O.!",
+        "perfect": "Perfect!",
+        "timeover": "Time over!",
+        "training": "Training mode."
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#screen {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+  cursor: pointer;
+}
+.bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  height: 20px;
+  font: 11px/20px monospace;
+  color: #5a5a7a;
+}
+.bar a {
+  color: #8a8ab0;
+  text-decoration: none;
+}
+.bar a:hover {
+  color: #fff;
+}
+@media (max-width: 700px) {
+  .bar span { display: none; }
+}
+
+/* ---- touch controls (only added on touch devices) ---- */
+body.has-touch { justify-content: flex-start; }
+body.has-touch .bar { display: none; }
+#touch {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: 190px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px 12px;
+  box-sizing: border-box;
+  user-select: none; -webkit-user-select: none; touch-action: none;
+  font: bold 13px monospace;
+}
+#touch .dpad { display: grid; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(3, 52px); }
+#touch .dpad b { display: flex; align-items: center; justify-content: center; color: #8a8ab0; }
+#touch .dpad b[data-d]:not([data-d*=","]) { background: #2a2a44; border-radius: 8px; }
+#touch .dpad b.on { background: #5050a0; color: #fff; }
+#touch .mid { display: flex; flex-direction: column; gap: 10px; }
+#touch .mid button { background: #2a2a44; color: #b0b0d0; border: 0; border-radius: 12px; padding: 8px 12px; font: inherit; }
+#touch .face { display: grid; grid-template-columns: repeat(2, 64px); grid-template-rows: 56px 40px 56px; gap: 6px; }
+#touch .face button { border: 0; border-radius: 50%; color: #fff; font: inherit; }
+#touch .face .sp { grid-column: 1 / span 2; border-radius: 20px; background: #6a4aa8; }
+#touch .y { background: #3a8a3a; } #touch .x { background: #3a5ac8; }
+#touch .b { background: #c8a020; } #touch .a { background: #c83a3a; }
+#touch .on { filter: brightness(1.6); }
