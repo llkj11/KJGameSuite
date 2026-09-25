@@ -5,7 +5,8 @@
     "fable": "music/fable.mp3",
     "opus": "music/opus.mp3",
     "astra": "music/astra.mp3",
-    "sol": "music/sol.mp3"
+    "sol": "music/sol.mp3",
+    "grok": "music/grok.mp3"
   },
   "sfx": {},
   "voice": {}
