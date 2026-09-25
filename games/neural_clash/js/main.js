@@ -84,7 +84,7 @@
       NC.Session.mode = a[3] || 'versuscpu';
       var p1 = { id: a[0] || 'fable', ci: 0 }, p2 = { id: a[1] || 'grok', ci: a[0] === a[1] ? 1 : 0 };
       NC.Session.picks = [p1, p2];
-      NC.Scenes.go(NC.FightScene({ p1: p1, p2: p2, stage: a[2] || NC.CHAR[p2.id].stage, music: NC.CHAR[p2.id].music, level: 3 }), true);
+      NC.Scenes.go(NC.FightScene({ p1: p1, p2: p2, stage: a[2] || NC.CHAR[p2.id].stage, music: NC.stageMusic(a[2] || NC.CHAR[p2.id].stage), level: 3 }), true);
     } else if (h === 'select') { NC.Session.mode = 'versuscpu'; NC.Scenes.go(NC.SelectScene(), true); }
     else if (h === 'title') NC.Scenes.go(NC.TitleScene(), true);
     else if (h === 'options') NC.Scenes.go(NC.OptionsScene(), true);

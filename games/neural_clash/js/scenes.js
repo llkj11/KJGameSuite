@@ -376,7 +376,7 @@
           NC.startArcadeMatch();
         } else {
           var o = { p1: S.picks[0], p2: S.picks[1], music: NC.CHAR[P[1].id].music };
-          if (S.mode === 'training') { o.stage = NC.CHAR[P[0].id].stage; Scenes.go(NC.VSScene(o)); }
+          if (S.mode === 'training') { o.stage = NC.CHAR[P[0].id].stage; o.music = NC.stageMusic(o.stage); Scenes.go(NC.VSScene(o)); }
           else Scenes.go(NC.StageSelectScene(o, NC.CHAR[P[1].id].stage));
         }
       },
@@ -504,19 +504,29 @@
   };
 
   // ------------------------------------------------------------------ STAGE SELECT (versus)
+  // Each stage plays the theme of the fighter who calls it home (Mythos's vault gets the boss theme).
+  NC.stageMusic = function (stageId) {
+    for (var i = 0; i < NC.ROSTER.length; i++) if (NC.ROSTER[i].stage === stageId) return NC.ROSTER[i].music;
+    return 'select';
+  };
+
   NC.StageSelectScene = function (o, defaultStage) {
     var ids = NC.Stages.ids.concat(['random']);
     var sel = Math.max(0, ids.indexOf(defaultStage));
     return {
       t: 0,
+      enter: function () { if (ids[sel] !== 'random') A.playMusic(NC.stageMusic(ids[sel]), { fadeOut: 0.25, fadeIn: 0.3 }); },
       update: function () {
         this.t++;
+        var was = sel;
         if (I.pressed('left')) { sel = (sel + ids.length - 1) % ids.length; A.sfx('cursor'); }
         if (I.pressed('right')) { sel = (sel + 1) % ids.length; A.sfx('cursor'); }
+        if (sel !== was && ids[sel] !== 'random') A.playMusic(NC.stageMusic(ids[sel]), { fadeOut: 0.25, fadeIn: 0.3 });
         if (I.cancel()) { A.sfx('cancel'); Scenes.go(NC.SelectScene()); return; }
         if (this.t > 10 && I.confirm()) {
           A.sfx('confirm');
           o.stage = ids[sel] === 'random' ? U.choice(NC.Stages.ids) : ids[sel];
+          o.music = NC.stageMusic(o.stage);
           Scenes.go(NC.VSScene(o));
         }
       },
