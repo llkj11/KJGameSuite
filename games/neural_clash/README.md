@@ -102,7 +102,7 @@ python3 tools/generate_art.py all --process-only               # rebuild from ra
 2. Save each result to its `save_to` path.
 3. Run `python3 tools/generate_art.py all --process-only`. This needs no token.
 
-If the connector's images stay on the Kenspire server, record each result's server URL in `tools/art_results.json` as `{"job id": "/generated_images/..."}`. Then run `KENSPIRE_TOKEN=... python3 tools/generate_art.py fetch`. It downloads the recorded images into the raw folders and processes everything. Images already downloaded are skipped unless you pass `--force`.
+If the connector's images stay on the Kenspire server, record each result's server URL in `tools/art_results.json` as `{"job id": "/generated_images/..."}`. Then run `KENSPIRE_TOKEN=... python3 tools/generate_art.py fetch`. It downloads the recorded images into the raw folders and processes everything. Images already downloaded are skipped unless you pass `--force`. The connector's `get_download_urls` tool also returns signed links that download without a token.
 
 ## Other features
 
@@ -141,4 +141,5 @@ For development, URL hashes skip the menus:
 ## Credits
 
 - **Font:** Press Start 2P by CodeMan38, SIL Open Font License 1.1.
-- **Everything else:** sprites, stages, music and code are original and generated in code.
+- **Generated art:** stage backdrops, fighter sprites and portraits in `assets/art/` were generated with Kenspire (Gemini 3.1 Flash Image for stages and references, GPT Image 2.5 Flare for pose edits) and processed by `tools/generate_art.py`. `tools/art_results.json` records each image's server path.
+- **Everything else:** the procedural fallback sprites and stages, the built-in music synth and the code are original and generated in code.
