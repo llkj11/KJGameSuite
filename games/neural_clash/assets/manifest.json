@@ -6,7 +6,8 @@
     "opus": "music/opus.mp3",
     "astra": "music/astra.mp3",
     "sol": "music/sol.mp3",
-    "grok": "music/grok.mp3"
+    "grok": "music/grok.mp3",
+    "gemini": "music/gemini.mp3"
   },
   "sfx": {},
   "voice": {}
