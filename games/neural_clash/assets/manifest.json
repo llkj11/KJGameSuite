@@ -21,7 +21,194 @@
     "block": "sfx/block.mp3",
     "ko": "sfx/ko.mp3",
     "whiffL": "sfx/whiffL.mp3",
-    "whiffH": "sfx/whiffH.mp3"
+    "whiffH": "sfx/whiffH.mp3",
+    "jump": "sfx/jump.mp3",
+    "land": "sfx/land.mp3",
+    "dash": "sfx/dash.mp3",
+    "thud": "sfx/thud.mp3",
+    "fire": "sfx/fire.mp3",
+    "charge": "sfx/charge.mp3",
+    "beam": "sfx/beam.mp3",
+    "teleport": "sfx/teleport.mp3",
+    "explode": "sfx/explode.mp3",
+    "clang": "sfx/clang.mp3",
+    "splash": "sfx/splash.mp3",
+    "super": "sfx/super.mp3",
+    "parry": "sfx/parry.mp3",
+    "grab": "sfx/grab.mp3",
+    "powerup": "sfx/powerup.mp3",
+    "denied": "sfx/denied.mp3",
+    "cursor": "sfx/cursor.mp3",
+    "confirm": "sfx/confirm.mp3",
+    "cancel": "sfx/cancel.mp3",
+    "costume": "sfx/costume.mp3",
+    "pause": "sfx/pause.mp3",
+    "coin": "sfx/coin.mp3",
+    "round": "sfx/round.mp3",
+    "fight": "sfx/fight.mp3",
+    "kostinger": "sfx/kostinger.mp3",
+    "announce_round1": "sfx/announce_round1.mp3",
+    "announce_round2": "sfx/announce_round2.mp3",
+    "announce_round3": "sfx/announce_round3.mp3",
+    "announce_round4": "sfx/announce_round4.mp3",
+    "announce_round5": "sfx/announce_round5.mp3",
+    "announce_final": "sfx/announce_final.mp3",
+    "announce_fight": "sfx/announce_fight.mp3",
+    "announce_ko": "sfx/announce_ko.mp3",
+    "announce_perfect": "sfx/announce_perfect.mp3",
+    "announce_timeover": "sfx/announce_timeover.mp3",
+    "announce_training": "sfx/announce_training.mp3"
   },
-  "voice": {}
+  "voice": {
+    "fable": {
+      "select": [
+        "voice/fable_select_0.mp3",
+        "voice/fable_select_1.mp3",
+        "voice/fable_select_2.mp3"
+      ],
+      "win": [
+        "voice/fable_win_0.mp3",
+        "voice/fable_win_1.mp3",
+        "voice/fable_win_2.mp3"
+      ],
+      "taunt": "voice/fable_taunt.mp3",
+      "super": "voice/fable_super.mp3",
+      "ending": "voice/fable_ending.mp3"
+    },
+    "opus": {
+      "select": [
+        "voice/opus_select_0.mp3",
+        "voice/opus_select_1.mp3",
+        "voice/opus_select_2.mp3"
+      ],
+      "win": [
+        "voice/opus_win_0.mp3",
+        "voice/opus_win_1.mp3",
+        "voice/opus_win_2.mp3"
+      ],
+      "taunt": "voice/opus_taunt.mp3",
+      "super": "voice/opus_super.mp3",
+      "ending": "voice/opus_ending.mp3"
+    },
+    "astra": {
+      "select": [
+        "voice/astra_select_0.mp3",
+        "voice/astra_select_1.mp3",
+        "voice/astra_select_2.mp3"
+      ],
+      "win": [
+        "voice/astra_win_0.mp3",
+        "voice/astra_win_1.mp3",
+        "voice/astra_win_2.mp3"
+      ],
+      "taunt": "voice/astra_taunt.mp3",
+      "super": "voice/astra_super.mp3",
+      "ending": "voice/astra_ending.mp3"
+    },
+    "sol": {
+      "select": [
+        "voice/sol_select_0.mp3",
+        "voice/sol_select_1.mp3",
+        "voice/sol_select_2.mp3"
+      ],
+      "win": [
+        "voice/sol_win_0.mp3",
+        "voice/sol_win_1.mp3",
+        "voice/sol_win_2.mp3"
+      ],
+      "taunt": "voice/sol_taunt.mp3",
+      "super": "voice/sol_super.mp3",
+      "ending": "voice/sol_ending.mp3"
+    },
+    "grok": {
+      "select": [
+        "voice/grok_select_0.mp3",
+        "voice/grok_select_1.mp3",
+        "voice/grok_select_2.mp3"
+      ],
+      "win": [
+        "voice/grok_win_0.mp3",
+        "voice/grok_win_1.mp3",
+        "voice/grok_win_2.mp3"
+      ],
+      "taunt": "voice/grok_taunt.mp3",
+      "super": "voice/grok_super.mp3",
+      "ending": "voice/grok_ending.mp3"
+    },
+    "gemini": {
+      "select": [
+        "voice/gemini_select_0.mp3",
+        "voice/gemini_select_1.mp3",
+        "voice/gemini_select_2.mp3"
+      ],
+      "win": [
+        "voice/gemini_win_0.mp3",
+        "voice/gemini_win_1.mp3",
+        "voice/gemini_win_2.mp3"
+      ],
+      "taunt": "voice/gemini_taunt.mp3",
+      "super": "voice/gemini_super.mp3",
+      "ending": "voice/gemini_ending.mp3"
+    },
+    "deepseek": {
+      "select": [
+        "voice/deepseek_select_0.mp3",
+        "voice/deepseek_select_1.mp3",
+        "voice/deepseek_select_2.mp3"
+      ],
+      "win": [
+        "voice/deepseek_win_0.mp3",
+        "voice/deepseek_win_1.mp3",
+        "voice/deepseek_win_2.mp3"
+      ],
+      "taunt": "voice/deepseek_taunt.mp3",
+      "super": "voice/deepseek_super.mp3",
+      "ending": "voice/deepseek_ending.mp3"
+    },
+    "qwen": {
+      "select": [
+        "voice/qwen_select_0.mp3",
+        "voice/qwen_select_1.mp3",
+        "voice/qwen_select_2.mp3"
+      ],
+      "win": [
+        "voice/qwen_win_0.mp3",
+        "voice/qwen_win_1.mp3",
+        "voice/qwen_win_2.mp3"
+      ],
+      "taunt": "voice/qwen_taunt.mp3",
+      "super": "voice/qwen_super.mp3",
+      "ending": "voice/qwen_ending.mp3"
+    },
+    "kimi": {
+      "select": [
+        "voice/kimi_select_0.mp3",
+        "voice/kimi_select_1.mp3",
+        "voice/kimi_select_2.mp3"
+      ],
+      "win": [
+        "voice/kimi_win_0.mp3",
+        "voice/kimi_win_1.mp3",
+        "voice/kimi_win_2.mp3"
+      ],
+      "taunt": "voice/kimi_taunt.mp3",
+      "super": "voice/kimi_super.mp3",
+      "ending": "voice/kimi_ending.mp3"
+    },
+    "mythos": {
+      "select": [
+        "voice/mythos_select_0.mp3",
+        "voice/mythos_select_1.mp3",
+        "voice/mythos_select_2.mp3"
+      ],
+      "win": [
+        "voice/mythos_win_0.mp3",
+        "voice/mythos_win_1.mp3",
+        "voice/mythos_win_2.mp3"
+      ],
+      "taunt": "voice/mythos_taunt.mp3",
+      "super": "voice/mythos_super.mp3",
+      "ending": "voice/mythos_ending.mp3"
+    }
+  }
 }

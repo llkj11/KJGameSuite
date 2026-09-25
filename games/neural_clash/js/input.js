@@ -36,6 +36,7 @@
   }
 
   var keyState = [blank(), blank()];
+  var latched = [blank(), blank()]; // keys pressed since the last poll (so quick taps are never lost)
   var prev = [blank(), blank()];
   var players = [
     { held: blank(), pressed: blank(), released: blank(), device: 'keyboard' },
@@ -48,7 +49,7 @@
     var used = false;
     for (var p = 0; p < 2; p++) {
       var b = KEYMAP[p][e.code];
-      if (b) { keyState[p][b] = down; used = true; }
+      if (b) { keyState[p][b] = down; if (down) latched[p][b] = true; used = true; }
     }
     if (down) {
       lastKeyCode = e.code;
@@ -86,7 +87,7 @@
   // Called once per logic frame.
   function poll() {
     var merged = [blank(), blank()];
-    for (var p = 0; p < 2; p++) for (var k in keyState[p]) merged[p][k] = keyState[p][k];
+    for (var p = 0; p < 2; p++) for (var k in keyState[p]) { merged[p][k] = keyState[p][k] || latched[p][k]; latched[p][k] = false; }
     readPads(merged);
     for (p = 0; p < 2; p++) {
       var pl = players[p];
