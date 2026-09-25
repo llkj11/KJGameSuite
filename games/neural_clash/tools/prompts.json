@@ -25,88 +25,142 @@
     "base": "16-bit retro SNES fighting game sound effect, crunchy low-bitrate sample,",
     "effects": {
       "hitL": {
-        "text": "light punch impact, quick smack",
-        "duration": 0.5
+        "text": "fast snappy punch to the face, tight smack with a solid low thump",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 3
       },
       "hitH": {
-        "text": "heavy punch impact, deep thud with crunch",
-        "duration": 0.7
+        "text": "brutal heavy punch impact, bone-crunching thwack with a deep sub-bass boom and meaty crunch",
+        "duration": 0.7,
+        "combat": true,
+        "variants": 3
       },
       "counter": {
-        "text": "counter hit, heavy impact with a bright metallic ring",
-        "duration": 0.8
+        "text": "devastating counter-hit impact, explosive crack and deep boom with a bright metallic ring",
+        "duration": 0.9,
+        "combat": true,
+        "variants": 2
       },
       "block": {
-        "text": "attack blocked, short hard clack",
-        "duration": 0.5
+        "text": "hard attack blocked by armored forearms, sharp dense clack with a short low thud",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 3
       },
       "ko": {
-        "text": "final knockout blow, huge impact with a long rumbling tail",
-        "duration": 1.6
+        "text": "colossal final knockout punch, gigantic explosive impact with thunderous low boom and crackle",
+        "duration": 1.4,
+        "combat": true
+      },
+      "koSlow": {
+        "text": "slow-motion knockout blow, massive cinematic boom with a long deep rumbling thunder tail, reverberant",
+        "duration": 2.6,
+        "combat": true
+      },
+      "superBurst": {
+        "text": "super move unleashed, huge explosive energy detonation with a whooshing blast wave and deep bass boom",
+        "duration": 1.4,
+        "combat": true
       },
       "whiffL": {
-        "text": "fast punch whoosh through the air",
-        "duration": 0.5
+        "text": "quick sharp whoosh of a fast jab cutting the air",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 3
       },
       "whiffH": {
-        "text": "slow heavy kick whoosh",
-        "duration": 0.5
-      },
-      "jump": {
-        "text": "quick jump, springy upward blip",
-        "duration": 0.5
+        "text": "heavy powerful kick swing whoosh, thick air rip",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 2
       },
       "land": {
-        "text": "feet landing on the floor, soft thump",
-        "duration": 0.5
-      },
-      "dash": {
-        "text": "fast dash, swooshing wind burst",
-        "duration": 0.6
+        "text": "feet landing hard on a wooden floor, tight heavy thump",
+        "duration": 0.5,
+        "combat": true,
+        "variants": 2
       },
       "thud": {
-        "text": "body slamming onto the ground, heavy thud",
-        "duration": 0.7
+        "text": "body slamming hard onto the ground, heavy crunchy thud with a floor-shaking boom",
+        "duration": 0.8,
+        "combat": true,
+        "variants": 2
+      },
+      "dash": {
+        "text": "explosive fast dash, sharp air burst swoosh",
+        "duration": 0.5,
+        "combat": true
       },
       "fire": {
-        "text": "energy projectile launched, hadouken-like whoosh",
-        "duration": 0.8
+        "text": "energy fireball launched, hadouken-style blast with a fiery whoosh and crackle",
+        "duration": 0.8,
+        "combat": true
       },
       "charge": {
-        "text": "power charging up, rising energy hum",
-        "duration": 0.8
+        "text": "power charging up, intense rising electric energy hum building up",
+        "duration": 1.0,
+        "combat": true
       },
       "beam": {
-        "text": "giant energy beam firing, roaring laser",
-        "duration": 1.8
+        "text": "enormous energy beam blasting, roaring laser cannon with deep rumble and crackling",
+        "duration": 1.8,
+        "combat": true
       },
       "teleport": {
-        "text": "teleport, warbling sci-fi zap",
-        "duration": 0.6
+        "text": "teleport, sharp sci-fi zap warble ending in a pop",
+        "duration": 0.6,
+        "combat": true
       },
       "explode": {
-        "text": "explosion, crunchy blast",
-        "duration": 1.2
+        "text": "massive explosion, crunchy blast with a deep booming tail",
+        "duration": 1.4,
+        "combat": true
       },
       "clang": {
-        "text": "steel girder dropped on concrete, loud metallic clang",
-        "duration": 1.0
+        "text": "huge steel girder slammed onto concrete, loud ringing clang with a heavy impact",
+        "duration": 1.0,
+        "combat": true
       },
       "splash": {
-        "text": "whale splashing out of water, big splash",
-        "duration": 1.2
+        "text": "huge whale crashing out of the water, massive splash with a deep impact",
+        "duration": 1.2,
+        "combat": true
       },
       "super": {
-        "text": "super move activation, dramatic rising whoosh into an orchestra hit",
-        "duration": 1.2
+        "text": "super move activation, dramatic rising energy whoosh into a massive orchestra hit stab",
+        "duration": 1.2,
+        "combat": true
       },
       "parry": {
-        "text": "perfect parry, crisp shing with sparkle",
-        "duration": 0.6
+        "text": "perfect parry, crisp metallic shing with a bright sparkle ring",
+        "duration": 0.6,
+        "combat": true
       },
       "grab": {
-        "text": "grabbing clothing, quick rustle and grunt-free grip",
-        "duration": 0.5
+        "text": "quick forceful grab, cloth yank and a heavy grip thump",
+        "duration": 0.5,
+        "combat": true
+      },
+      "jump": {
+        "text": "quick springy jump whoosh",
+        "duration": 0.5,
+        "combat": true
+      },
+      "round": {
+        "text": "round start, huge orchestra hit stab with a timpani boom",
+        "duration": 1.0,
+        "combat": true
+      },
+      "fight": {
+        "text": "fight start, massive orchestra hit with crash cymbal and taiko drum boom",
+        "duration": 1.2,
+        "combat": true
+      },
+      "kostinger": {
+        "text": "knockout sting, gigantic orchestra hit with a thunder crash and taiko drums",
+        "duration": 1.6,
+        "combat": true
       },
       "powerup": {
         "text": "power-up acquired, ascending arpeggio chime",
@@ -139,20 +193,9 @@
       "coin": {
         "text": "arcade credit inserted, coin chime",
         "duration": 0.6
-      },
-      "round": {
-        "text": "round start, orchestra hit stab",
-        "duration": 0.8
-      },
-      "fight": {
-        "text": "fight start, orchestra hit and crash cymbal",
-        "duration": 1.0
-      },
-      "kostinger": {
-        "text": "knockout sting, orchestra hit with thunder crash",
-        "duration": 1.5
       }
-    }
+    },
+    "combat_base": "Punchy 90s arcade fighting game sound effect (Street Fighter Alpha, Killer Instinct), huge and hard-hitting, sharp transient at the very start with no silence before it, heavy low end, no music, no voice, no speech,"
   },
   "voices": {
     "model": "eleven_multilingual_v2",

@@ -15,17 +15,45 @@
     "victory": "music/victory.mp3"
   },
   "sfx": {
-    "hitH": "sfx/hitH.mp3",
-    "hitL": "sfx/hitL.mp3",
-    "counter": "sfx/counter.mp3",
-    "block": "sfx/block.mp3",
+    "hitH": [
+      "sfx/hitH_1.mp3",
+      "sfx/hitH_2.mp3",
+      "sfx/hitH_3.mp3"
+    ],
+    "hitL": [
+      "sfx/hitL_1.mp3",
+      "sfx/hitL_2.mp3",
+      "sfx/hitL_3.mp3"
+    ],
+    "counter": [
+      "sfx/counter_1.mp3",
+      "sfx/counter_2.mp3"
+    ],
+    "block": [
+      "sfx/block_1.mp3",
+      "sfx/block_2.mp3",
+      "sfx/block_3.mp3"
+    ],
     "ko": "sfx/ko.mp3",
-    "whiffL": "sfx/whiffL.mp3",
-    "whiffH": "sfx/whiffH.mp3",
+    "whiffL": [
+      "sfx/whiffL_1.mp3",
+      "sfx/whiffL_2.mp3",
+      "sfx/whiffL_3.mp3"
+    ],
+    "whiffH": [
+      "sfx/whiffH_1.mp3",
+      "sfx/whiffH_2.mp3"
+    ],
     "jump": "sfx/jump.mp3",
-    "land": "sfx/land.mp3",
+    "land": [
+      "sfx/land_1.mp3",
+      "sfx/land_2.mp3"
+    ],
     "dash": "sfx/dash.mp3",
-    "thud": "sfx/thud.mp3",
+    "thud": [
+      "sfx/thud_1.mp3",
+      "sfx/thud_2.mp3"
+    ],
     "fire": "sfx/fire.mp3",
     "charge": "sfx/charge.mp3",
     "beam": "sfx/beam.mp3",
@@ -57,7 +85,9 @@
     "announce_ko": "sfx/announce_ko.mp3",
     "announce_perfect": "sfx/announce_perfect.mp3",
     "announce_timeover": "sfx/announce_timeover.mp3",
-    "announce_training": "sfx/announce_training.mp3"
+    "announce_training": "sfx/announce_training.mp3",
+    "koSlow": "sfx/koSlow.mp3",
+    "superBurst": "sfx/superBurst.mp3"
   },
   "voice": {
     "fable": {

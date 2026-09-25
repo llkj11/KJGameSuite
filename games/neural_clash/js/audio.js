@@ -6,7 +6,7 @@
   'use strict';
 
   var A = NC.Audio = {};
-  var ctx = null, master, musicGain, sfxGain, musicBus, echoIn, voiceGain;
+  var ctx = null, master, musicGain, sfxGain, musicBus, echoIn, voiceGain, duckGain;
   var noiseBuf = null;
   var waves = {};
   var manifest = { music: {}, sfx: {}, voice: {} };
@@ -27,7 +27,9 @@
     master.connect(ctx.destination);
     A._master = master;
 
-    musicGain = ctx.createGain(); musicGain.connect(master);
+    // music runs through a ducking stage so big impacts can punch a hole in it (sidechain feel)
+    duckGain = ctx.createGain(); duckGain.connect(master);
+    musicGain = ctx.createGain(); musicGain.connect(duckGain);
     sfxGain = ctx.createGain(); sfxGain.connect(master);
     voiceGain = ctx.createGain(); voiceGain.connect(master);
 
@@ -431,7 +433,7 @@
         manifest.sfx = m.sfx || {};
         manifest.voice = m.voice || {};
         // Warm up SFX buffers so hits play instantly.
-        Object.keys(manifest.sfx).forEach(function (k) { getBuffer(manifest.sfx[k], function () {}); });
+        Object.keys(manifest.sfx).forEach(function (k) { [].concat(manifest.sfx[k]).forEach(function (u) { getBuffer(u, function () {}); }); });
       }).catch(function () { /* no manifest: synth only */ });
   }
   function getBuffer(url, cb) {
@@ -492,18 +494,60 @@
     coin: function (t, d) { tone(t, 988, 988, 0.08, 0.2, d, 'square'); tone(t + 0.08, 1319, 1319, 0.3, 0.2, d, 'square', 0.4); },
     round: function (t, d) { DRUM.O(t, 0.9, d); },
     fight: function (t, d) { DRUM.O(t, 1, d); DRUM.x(t, 1, d); },
-    kostinger: function (t, d) { DRUM.O(t, 1, d); DRUM.K(t, 1, d); DRUM.x(t, 1, d); }
+    kostinger: function (t, d) { DRUM.O(t, 1, d); DRUM.K(t, 1, d); DRUM.x(t, 1, d); },
+    superBurst: function (t, d) { SFX.explode(t, d); tone(t, 1600, 200, 0.5, 0.3, d, 'sawtooth', 0.6); },
+    koSlow: function (t, d) { noise(t, 2.4, 'lowpass', 600, 1, 0.8, d, 2.3, 0.7); tone(t, 90, 28, 2.2, 0.9, d); }
   };
+
+  // Combat sounds get a default impact power, a synthesized sub-bass thump + click under the
+  // sample (scaled by power), ±4% pitch variation, and duck the music briefly.
+  var POWER = { hitL: 0.3, hitH: 0.55, counter: 0.7, ko: 1, koSlow: 1, superBurst: 1, block: 0.2, thud: 0.5, explode: 0.8, clang: 0.5 };
+  var THUMP = { hitL: 1, hitH: 1, counter: 1, ko: 1, koSlow: 1, superBurst: 1, thud: 1, explode: 1 };
+  var DUCK = { hitH: 0.3, counter: 0.45, ko: 0.65, koSlow: 0.75, super: 0.55, superBurst: 0.7, explode: 0.45, kostinger: 0.5, beam: 0.35 };
+  var JITTER = /^(hit|counter|block|whiff|land|thud|dash|jump|grab|clang|explode|fire)/;
+  var lastVariant = {};
+
+  function pickUrl(name) {
+    var e = manifest.sfx[name];
+    if (!Array.isArray(e)) return e;
+    var i = Math.floor(Math.random() * e.length);
+    if (e.length > 1 && i === lastVariant[name]) i = (i + 1) % e.length;
+    lastVariant[name] = i;
+    return e[i];
+  }
+  function thump(t, p) {
+    var o = ctx.createOscillator(); o.type = 'sine';
+    var dur = 0.09 + 0.16 * p;
+    o.frequency.setValueAtTime(95 + 45 * p, t);
+    o.frequency.exponentialRampToValueAtTime(34, t + dur);
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.35 + 0.65 * p, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + dur + 0.05);
+    o.connect(g); g.connect(sfxGain); o.start(t); o.stop(t + dur + 0.1);
+    noise(t, 0.012, 'highpass', 2500, 0.7, 0.15 + 0.25 * p, sfxGain, 0.012);
+  }
+  function duck(amount, recover) {
+    var t = ctx.currentTime, gp = duckGain.gain;
+    gp.cancelScheduledValues(t);
+    gp.setValueAtTime(gp.value, t);
+    gp.linearRampToValueAtTime(Math.max(0.1, 1 - amount), t + 0.015);
+    gp.setTargetAtTime(1, t + 0.06, recover / 3);
+  }
 
   A.sfx = function (name, opts) {
     if (!ctx || ctx.state !== 'running') return;
     opts = opts || {};
-    var url = manifest.sfx[name];
-    if (url && buffers[url] && buffers[url] !== 'loading' && buffers[url] !== 'failed') {
-      playBuffer(buffers[url], sfxGain, opts.rate, opts.vol);
-      return;
-    }
-    if (SFX[name]) SFX[name](ctx.currentTime + 0.005, sfxGain, opts.pitch);
+    var t = ctx.currentTime + 0.003;
+    var power = opts.power != null ? opts.power : POWER[name];
+    var url = pickUrl(name);
+    var buf = url && buffers[url];
+    var rate = (opts.rate || 1) * (JITTER.test(name) ? 1 + (Math.random() - 0.5) * 0.08 : 1);
+    var vol = opts.vol != null ? opts.vol : power != null ? 0.75 + 0.35 * power : 1;
+    if (buf && buf !== 'loading' && buf !== 'failed') playBuffer(buf, sfxGain, rate, vol);
+    else if (SFX[name]) SFX[name](t, sfxGain, opts.pitch);
+    if (THUMP[name] && power != null) thump(t, power);
+    if (DUCK[name]) duck(DUCK[name] * (power != null ? 0.6 + 0.4 * power : 1), name === 'koSlow' ? 1.2 : 0.35);
   };
 
   // Dialog text blip, per-character pitch.
